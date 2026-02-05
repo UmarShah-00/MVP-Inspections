@@ -1,0 +1,16 @@
+:root {
+  --black: #0F172A;
+  --white: #FFFFFF;
+
+  --bg: #FFFFFF;
+  --card-bg: #F8FAFC;
+  --border: #E5E7EB;
+
+  --primary: #2563EB;
+  --warning: #F59E0B;
+  --success: #16A34A;
+  --danger: #DC2626;
+
+  --text-dark: #0F172A;
+  --text-light: #64748B;
+}

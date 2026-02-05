@@ -1,0 +1,217 @@
+.headerContainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.title {
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    color: #000;
+}
+
+.subTitle, .subheading {
+    font-size: 14px;
+    color: #6b7280;
+    margin-top: 4px;
+}
+
+.createButton {
+    background-color: #000;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 6px;
+    border: none;
+}
+
+.createButton:hover {
+    background-color: #222;
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    width: 100%;
+}
+
+.header,
+.row {
+    display: grid;
+    grid-template-columns: 0.5fr 2fr 3fr 1fr 1fr;
+    padding: 14px 20px;
+    align-items: center;
+}
+
+.header {
+    background: #f1f5f9;
+    font-weight: 500;
+    font-size: 14px;
+}
+
+.row {
+    border-top: 1px solid #ddd;
+}
+
+.row:hover {
+    background: #f8fafc;
+}
+
+/* =========================
+   BADGES
+========================= */
+
+.badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.badge.main { background-color: #ef4444; }
+.badge.sub { background-color: #f59e0b; }
+.badge.defaultRole { background-color: #3b82f6; }
+
+/* =========================
+   TABLE ACTIONS
+========================= */
+
+.actions {
+    display: flex;
+    gap: 10px;
+    justify-content: end;
+}
+
+.actionBtn {
+    background-color: #000;
+    color: #fff;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: none;
+}
+
+.actionBtn:hover {
+    background-color: #222;
+}
+
+/* =========================
+   STATES (LOADING / EMPTY)
+========================= */
+
+.loading,
+.noRecords {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    grid-column: 1 / -1;
+}
+
+/* =========================
+   SWEET ALERT CUSTOMIZATION
+========================= */
+
+.swal2-styled.swal-confirm {
+    background-color: #000 !important;
+    color: #fff !important;
+}
+
+.swal2-styled.swal-confirm:hover {
+    background-color: #222 !important;
+}
+
+/* =========================
+   FORM CONTAINER
+========================= */
+
+.form {
+    width: 100%;
+    background: #fff;
+    padding: 32px;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    margin-top: 15px;
+}
+
+.formRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.formGroup {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+}
+
+.formGroup label {
+    font-size: 14px;
+    font-weight: 500;
+    margin-bottom: 6px;
+}
+
+.inputField {
+    padding: 10px 14px;
+    font-size: 14px;
+    border-radius: 10px;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
+}
+
+.inputField:focus {
+    outline: none;
+    border-color: #000;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.1);
+}
+
+/* =========================
+   FORM ACTIONS
+========================= */
+
+.formActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-top: 24px;
+}
+
+.primary {
+    background: #000;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 500;
+}
+
+.primary:hover {
+    opacity: 0.9;
+}
+
+.secondary {
+    background: #fff;
+    color: #000;
+    padding: 12px 20px;
+    border-radius: 10px;
+    border: 1px solid #000;
+    font-weight: 500;
+}
+
+.secondary:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.required {
+    color: red;
+}

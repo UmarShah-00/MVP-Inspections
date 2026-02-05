@@ -1,0 +1,100 @@
+/* Wrapper card */
+.formWrapper {
+  width: 100%;
+  text-align: center;
+  animation: fadeIn 0.6s ease-in-out;
+}
+
+/* Heading */
+.heading {
+  font-size: 32px;
+  color: #000000; /* black */
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+/* Description */
+.description {
+  font-size: 16px;
+  color: #000000; /* black */
+  margin-bottom: 32px;
+}
+
+/* Form layout */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Labels */
+.label {
+  display: block;
+  text-align: left;
+  font-size: 14px;
+  color: #000000; /* black */
+}
+
+/* Inputs */
+.input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-top: 6px;
+  border: 1px solid #000000; /* black border */
+  border-radius: 12px;
+  font-size: 14px;
+  outline: none;
+  transition: all 0.3s ease;
+  color: #000000; /* black text */
+  background: #ffffff; /* white input */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+.input:focus {
+  border-color: #000000;
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Button */
+.button {
+  width: 100%;
+  padding: 14px;
+  background: #000000; /* black button */
+  color: #ffffff; /* white text */
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 8px;
+}
+
+.button:hover {
+  opacity: 0.8;
+}
+
+/* Footer */
+.footerText {
+  margin-top: 16px;
+  font-size: 14px;
+  color: #000000; /* black */
+}
+
+.link {
+  color: #000000; /* black link */
+  text-decoration: underline;
+  font-weight: 500;
+}
+
+/* Fade-in animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

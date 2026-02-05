@@ -1,0 +1,25 @@
+@import "./variables.css";
+
+* {
+    box-sizing: border-box;
+    padding: 0;
+    margin: 0;
+}
+
+body {
+    font-family: Inter, system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text-dark);
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+.swal2-confirm-custom {
+  background-color: #000 !important; 
+  color: #fff !important;            
+  border: 1px solid #fff;           
+}
+
+
