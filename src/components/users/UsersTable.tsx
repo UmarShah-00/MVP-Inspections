@@ -20,7 +20,7 @@ interface Props {
 
 export default function UsersTable({ users, loading, onDelete }: Props) {
     if (loading) return <div className={styles.loading}>Loading...</div>;
-    if (users.length === 0) return <div className={styles.noRecords}>No records found</div>;
+    if (users.length === 0) return <div className={styles.noRecords}>No questions added yet.</div>;
 
     const handleDelete = (id: string, role: string) => {
         if (role === "Main Contractor") return;

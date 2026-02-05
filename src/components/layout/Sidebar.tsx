@@ -36,7 +36,7 @@ export default function Sidebar() {
       name: "Inspections",
       icon: <FiClipboard />,
       subMenu: [
-        { name: "Inspection List", link: "/inspections" },
+        { name: "Inspection ", link: "/inspections" },
         { name: "Create Inspection", link: "/inspections/create" },
       ],
     },
@@ -44,25 +44,25 @@ export default function Sidebar() {
       key: "actions",
       name: "Actions",
       icon: <FiCheckSquare />,
-      subMenu: [{ name: "Actions List", link: "/actions" }],
+      subMenu: [{ name: "Actions ", link: "/actions" }],
     },
       {
        key: "users",
       name: "Users",
       icon: <FiUsers />,
-      subMenu: [{ name: "Users List", link: "/users" }],
+      subMenu: [{ name: "Users ", link: "/users" }],
     },
     {
       key: "categories",
       name: "Categories",
       icon: <FiFolder />,
-      subMenu: [{ name: "Category List", link: "/categories" }],
+      subMenu: [{ name: "Category ", link: "/categories" }],
     },
-    {
-      key: "questions",
+       {
+       key: "questions",
       name: "Questions",
       icon: <FiEdit />,
-      link: "/questions",
+      subMenu: [{ name: "Questions", link: "/questions" }],
     },
   ];
 

@@ -1,36 +1,84 @@
 "use client";
 
-import { useState } from "react";
-import QuestionForm from "@/components/questions/QuestionForm";
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import Swal from "sweetalert2";
 import QuestionList from "@/components/questions/QuestionList";
+import styles from "@/styles/Question.module.css";
 
-const categories = [
-  { id: 1, name: "Site" },
-  { id: 2, name: "Activity" },
-  { id: 3, name: "Asset" },
-];
+interface Question {
+  id: string;
+  categoryName: string;
+  text: string;
+}
 
-export default function QuestionsPage() {
-  const [questions, setQuestions] = useState<
-    { id: number; categoryName: string; text: string }[]
-  >([]);
+export default function QuestionsTablePage() {
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleSave = (data: { categoryId: number; text: string }) => {
-    const category = categories.find((c) => c.id === data.categoryId);
-    setQuestions([
-      ...questions,
-      { id: questions.length + 1, categoryName: category?.name || "", text: data.text },
-    ]);
+  useEffect(() => {
+    fetchQuestions();
+  }, []);
+
+  const fetchQuestions = async () => {
+    try {
+      const res = await fetch("/api/questions");
+      const data = await res.json();
+
+      const mappedQuestions = data.questions.map((q: any) => ({
+        id: q._id,
+        categoryName: q.categoryId?.name || "Unknown",
+        text: q.text,
+      }));
+
+      setQuestions(mappedQuestions);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleDelete = (id: number) => {
-    setQuestions(questions.filter((q) => q.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      const res = await fetch(`/api/questions/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed to delete question");
+
+      setQuestions(questions.filter((q) => q.id !== id));
+
+      Swal.fire({
+        title: "Deleted!",
+        text: "Question has been deleted.",
+        icon: "success",
+        confirmButtonColor: "#000",
+      });
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire("Error", err.message || "Something went wrong", "error");
+    }
   };
 
   return (
     <div>
-      <QuestionForm categories={categories} onSave={handleSave} />
-      <QuestionList questions={questions} onDelete={handleDelete} />
+      <div className={styles.main}>
+        <div>
+          <h1 className={styles.title}>Questions</h1>
+          <span className={styles.subTitle}>
+            Manage all your questions with category info
+          </span>
+        </div>
+        <div>
+          <Link href="/questions/create" className={styles.createBtn}>
+            + Add Question
+          </Link>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className={styles.loading}>Loading questions...</div>
+      ) : (
+        <QuestionList questions={questions} onDelete={handleDelete} />
+      )}
     </div>
   );
 }
