@@ -30,7 +30,7 @@ export default function Sidebar() {
 
   // Menu definitions
   const menuItems: MenuItem[] = [
-    { key: "dashboard", name: "Dashboard", icon: <FiHome />, link: "/" },
+    { key: "dashboard", name: "Dashboard", icon: <FiHome />, link: "dashboard" },
     {
       key: "inspections",
       name: "Inspections",
@@ -78,7 +78,7 @@ export default function Sidebar() {
 
   return (
     <aside className={styles.sidebar}>
-      <h2 className={styles.logo}>Safety MVP</h2>
+      <h2 className={styles.logo}>MVP Inspection</h2>
 
       <nav className={styles.menu}>
         {menuItems.map((item) => (

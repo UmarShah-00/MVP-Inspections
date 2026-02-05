@@ -119,7 +119,7 @@ export default function UserForm({ initialData, onSave }: Props) {
                 </div>
             </div>
 
-            <div className={styles.actions}>
+            <div className={styles.action}>
                 <button type="button" className={styles.secondary} onClick={() => router.back()} disabled={loading}>
                     Cancel
                 </button>
