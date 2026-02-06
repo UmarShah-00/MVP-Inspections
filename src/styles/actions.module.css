@@ -1,10 +1,16 @@
-.container {
-    padding: 32px;
+.title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #000;
+    margin: 0;
 }
 
-.title {
-    font-size: 24px;
-    margin-bottom: 24px;
+.subTitle {
+    font-size: 1rem;
+    color: #555;
+    display: block;
+    margin-top: 4px;
+
 }
 
 .table {
@@ -12,12 +18,13 @@
     border: 1px solid #ddd;
     border-radius: 10px;
     overflow: hidden;
+    margin-top: 20px;
 }
 
 .header,
 .row {
     display: grid;
-    grid-template-columns: 1fr 2fr 1fr 1fr 1fr 1fr;
+    grid-template-columns: 70px 200px 200px 200px 200px 200px 190px 190px;
     padding: 14px 20px;
 }
 

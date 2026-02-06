@@ -6,7 +6,9 @@ export async function GET() {
   try {
     await connectDB();
 
-    const users = await User.find({ role: "Subcontractor" }).sort({ name: 1 });
+    const users = await User.find({
+      role: { $in: ["Subcontractor", "Main Contractor"] },
+    }).sort({ name: 1 });
 
     return NextResponse.json({ users }, { status: 200 });
   } catch (err) {
@@ -17,4 +19,5 @@ export async function GET() {
     );
   }
 }
+
 

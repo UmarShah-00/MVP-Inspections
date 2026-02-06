@@ -1,196 +1,249 @@
 "use client";
 
-import { useState } from "react";
-import { useParams } from "next/navigation";
-import styles from "../inspections.module.css";
+import { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import Swal from "sweetalert2";
+import styles from "@/styles/inspections.module.css";
 
-// Dummy categories + questions
-const categories = [
-  { id: 1, name: "Site" },
-  { id: 2, name: "Activity" },
-  { id: 3, name: "Asset" },
-];
+import RaiseActionModal, { Action } from "../RaiseActionModal";
 
-const allQuestions = [
-  { id: 1, category_id: 1, text: "Are access routes clear?" },
-  { id: 2, category_id: 1, text: "Is PPE being worn?" },
-  { id: 3, category_id: 1, text: "Are tools in good condition?" },
-  { id: 4, category_id: 2, text: "Has activity plan been reviewed?" },
-  { id: 5, category_id: 2, text: "Are required permits in place?" },
-  { id: 6, category_id: 3, text: "Is the machine inspected before use?" },
-  { id: 7, category_id: 3, text: "Is maintenance up-to-date?" },
-];
-
-// Modal Props type
-interface Action {
-  questionId: number;
-  title: string;
-  assignee: string;
-  dueDate: string;
-  status: "Open" | "In Progress" | "Closed";
-  evidence: string[];
+interface Question {
+  _id: string;
+  text: string;
 }
 
-interface ModalProps {
-  questionId: number;
-  onClose: () => void;
-  onSave: (action: Action) => void;
-}
-
-// Raise Action Modal Component
-function RaiseActionModal({ questionId, onClose, onSave }: ModalProps) {
-  const [title, setTitle] = useState("");
-  const [assignee, setAssignee] = useState("");
-  const [dueDate, setDueDate] = useState("");
-  const [status, setStatus] = useState<"Open" | "In Progress" | "Closed">("Open");
-  const [evidence, setEvidence] = useState<string[]>([]);
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files) return;
-    const filesArray = Array.from(e.target.files).map(file => file.name);
-    setEvidence(filesArray);
-  };
-
-  const handleSave = () => {
-    if (!title || !assignee || !dueDate) {
-      alert("Please fill all required fields");
-      return;
-    }
-    onSave({ questionId, title, assignee, dueDate, status, evidence });
-    onClose();
-  };
-
-  return (
-    <div className={styles.modalBackdrop}>
-      <div className={styles.modal}>
-        <h3>Raise Action</h3>
-
-        <label>Action Title*</label>
-        <input
-          type="text"
-          placeholder="Enter action title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-
-        <label>Assign To (Subcontractor)*</label>
-        <input
-          type="text"
-          placeholder="Enter assignee name"
-          value={assignee}
-          onChange={(e) => setAssignee(e.target.value)}
-        />
-
-        <label>Due Date*</label>
-        <input
-          type="date"
-          value={dueDate}
-          onChange={(e) => setDueDate(e.target.value)}
-        />
-
-        <label>Status</label>
-        <select value={status} onChange={(e) => setStatus(e.target.value as any)}>
-          <option value="Open">Open</option>
-          <option value="In Progress">In Progress</option>
-          <option value="Closed">Closed</option>
-        </select>
-
-        <label>Evidence / Files</label>
-        <input type="file" multiple onChange={handleFileChange} />
-        {evidence.length > 0 && (
-          <p className={styles.commentNote}>Selected Files: {evidence.join(", ")}</p>
-        )}
-
-        <div className={styles.modalButtons}>
-          <button onClick={onClose} className={styles.cancelBtn}>Cancel</button>
-          <button onClick={handleSave} className={styles.saveBtn}>Save Action</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// Main Inspection Detail Page
 export default function InspectionDetail() {
   const { id } = useParams();
+  const router = useRouter();
+  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
-  const [inspection] = useState({
-    title: "Block A Site Safety",
-    category_id: 1,
-    date: "2026-02-06",
-    subcontractor: "ABC Electrical",
-    status: "Draft",
-  });
-
-  const [answers, setAnswers] = useState<{ [key: number]: string }>({});
+  const [inspection, setInspection] = useState<any>(null);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [answers, setAnswers] = useState<Record<string, string>>({});
   const [actions, setActions] = useState<Action[]>([]);
-  const [showModal, setShowModal] = useState<number | null>(null);
+  const [showModal, setShowModal] = useState<string | null>(null);
 
-  const questions = allQuestions.filter(q => q.category_id === inspection.category_id);
-  const isActionSaved = (qId: number) => actions.some(a => a.questionId === qId);
-  const handleAnswer = (qId: number, value: string) => setAnswers({ ...answers, [qId]: value });
-  const handleSave = () => { console.log("Draft saved", answers); alert("Draft saved!"); };
-  const handleSubmit = () => { console.log("Submitted", answers); alert("Inspection submitted!"); };
-  const handleSaveAction = (action: Action) => setActions([...actions, action]);
+  // Fetch inspection data
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchInspection = async () => {
+      try {
+        const res = await fetch(`/api/inspections/${id}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to fetch inspection");
+
+        setInspection(data.inspection);
+        setQuestions(data.questions || []);
+        setActions(data.actions || []);
+
+        // ✅ DB se answers set karo
+        const ansMap: Record<string, string> = {};
+        (data.inspection.answers || []).forEach((a: any) => {
+          ansMap[a.questionId] = a.answer;
+        });
+        setAnswers(ansMap);
+      } catch (err) {
+        console.error(err);
+        Swal.fire({ title: "Error", text: "Failed to fetch inspection", icon: "error" });
+      }
+    };
+
+    fetchInspection();
+  }, [id, token]);
+
+  // Handle question answers
+  const handleAnswer = (qId: string, value: string) => {
+    setAnswers((prev) => ({ ...prev, [qId]: value }));
+  };
+
+  // Save action in state after modal
+  const handleSaveAction = (action: Action) => {
+    setActions((prev) => [...prev, action]);
+    Swal.fire({ title: "Action Saved", icon: "success" });
+  };
+
+  // Get action status for a question
+  const getActionStatus = (qId: string) => {
+    const action = actions.find((a) => a.questionId === qId);
+    return action ? action.status : null;
+  };
+
+  // Save draft / submit inspection
+  const saveInspection = async (status: "Draft" | "Submitted") => {
+    if (!token) return Swal.fire({ title: "Unauthorized", icon: "error" });
+
+    try {
+      const formData = new FormData();
+      formData.append("status", status);
+
+      // append answers
+      formData.append(
+        "answers",
+        JSON.stringify(
+          Object.entries(answers).map(([questionId, answer]) => ({ questionId, answer }))
+        )
+      );
+
+      // append new actions
+      const newActions = actions.filter((a) => !a._id);
+      formData.append("newActions", JSON.stringify(newActions));
+
+      // append files from each action
+      newActions.forEach((a) => {
+        a.evidence?.forEach((file) => {
+          formData.append(`${a.questionId}`, file as any);
+        });
+      });
+
+      const res = await fetch(`/api/inspections/${id}`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}` }, // Content-Type mat do
+        body: formData,
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to save inspection");
+
+      setInspection(data.inspection);
+      setActions(data.savedActions || []);
+
+      Swal.fire({
+        title: "Success",
+        text: status === "Draft" ? "Draft saved successfully!" : "Inspection submitted!",
+        icon: "success",
+        confirmButtonColor: "#000",
+      });
+
+      router.push("/inspections");
+    } catch (err: any) {
+      console.error(err);
+      Swal.fire({ title: "Error", text: err.message || "Something went wrong", icon: "error" });
+    }
+  };
+
+
+  if (!inspection) return <p>Loading...</p>;
 
   return (
     <div className={styles.container}>
-      {/* Header */}
-      <div className={styles.header}>
+      <h1 className={styles.title}>Inspection Details</h1>
+      <span className={styles.subTitle}>
+        Review the inspection details, answer questions, and raise actions if required.
+      </span>
+
+      {/* ===== HEADER ===== */}
+      <div className={styles.headers}>
         <h2>{inspection.title}</h2>
         <div className={styles.meta}>
-          <span>Type: {categories.find(c => c.id === inspection.category_id)?.name}</span>
-          <span>Date: {inspection.date}</span>
-          <span>Status: {inspection.status}</span>
-          <span>Subcontractor: {inspection.subcontractor}</span>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Category</span>
+            <span className={styles.metaValue}>{inspection.categoryId?.name || "N/A"}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Inspection Date</span>
+            <span className={styles.badge}>{new Date(inspection.date).toLocaleDateString()}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Status</span>
+            <span className={styles.status}>{inspection.status}</span>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Assigned JS</span>
+            <span className={styles.metaValue}>{inspection.subcontractorId?.name || "Unassigned"}</span>
+            <small className={styles.metaSub}>{inspection.subcontractorId?.role || "N/A"}</small>
+          </div>
+          <div className={styles.metaItem}>
+            <span className={styles.metaLabel}>Created By</span>
+            <span className={styles.metaValue}>{inspection.createdBy?.name}</span>
+            <small className={styles.metaSub}>{inspection.createdBy?.role || "N/A"}</small>
+          </div>
         </div>
       </div>
 
-      {/* Questions */}
+      {/* ===== QUESTIONS ===== */}
+      {/* ===== QUESTIONS ===== */}
       <div className={styles.questions}>
-        {questions.map((q) => (
-          <div key={q.id} className={styles.questionCard}>
-            <p className={styles.questionText}>{q.text}</p>
+        {questions.map((q) => {
+          // Use DB answers if state is empty
+          const answer = answers[q._id] || "";
+          const status = getActionStatus(q._id);
 
-            <div className={styles.options}>
-              {["Yes", "No", "N/A"].map(opt => (
-                <button
-                  key={opt}
-                  className={`${styles.optionBtn} ${answers[q.id] === opt ? styles.active : ""}`}
-                  onClick={() => handleAnswer(q.id, opt)}
+          return (
+            <div key={q._id} className={styles.questionCard}>
+              <p className={styles.questionText}>{q.text}</p>
+
+              <div className={styles.options}>
+                {["Yes", "No", "N/A"].map((opt) => (
+                  <button
+                    key={opt}
+                    className={`${styles.optionBtn} ${answer === opt ? styles.active : ""}`}
+                    onClick={() => handleAnswer(q._id, opt)}
+                  >
+                    {opt}
+                  </button>
+                ))}
+              </div>
+
+              {answer === "Yes" && (
+                <p
+                  className={styles.yesNote}
+                  style={{ fontSize: "12px", color: "#16a34a", marginTop: "4px" }}
                 >
-                  {opt}
+                  Answer: Yes
+                </p>
+              )}
+
+              {answer === "No" && (
+                <button
+                  className={`${styles.actionBtn} ${status && status !== "Closed" ? styles.actionSaved : ""}`}
+                  onClick={() => {
+                    if (!status) setShowModal(q._id);
+                    else
+                      Swal.fire({
+                        title: "Info",
+                        text: status === "Closed" ? "Action Closed" : "Action already saved",
+                        icon: "info",
+                        iconColor: "#dc2626",
+                        confirmButtonColor: "#000",
+                        confirmButtonText: "OK",
+                      });
+                  }}
+                  style={{
+                    backgroundColor: !status ? "#ef4444" : status === "Closed" ? "#555" : "#22c55e",
+                  }}
+                >
+                  {!status ? "+ Raise Action" : status === "Closed" ? "Action Closed" : `Action Saved (${status})`}
                 </button>
-              ))}
+              )}
             </div>
-
-            {answers[q.id] === "No" && (
-              <button
-                className={`${styles.actionBtn} ${isActionSaved(q.id) ? styles.actionSaved : ""}`}
-                onClick={() => setShowModal(q.id)}
-              >
-                {isActionSaved(q.id) ? " Action Saved" : "+ Raise Action"}
-              </button>
-            )}
-            {answers[q.id] && answers[q.id] !== "No" && (
-              <p className={styles.commentNote}>Answer: {answers[q.id]}</p>
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
-      {/* Footer */}
+
+      {/* ===== FOOTER ===== */}
       <div className={styles.footer}>
-        <button className={styles.saveBtn} onClick={handleSave}>Save Draft</button>
-        <button className={styles.submitBtn} onClick={handleSubmit}>Submit Inspection</button>
+        <button className={styles.secondary} onClick={() => router.back()}>
+          Cancel
+        </button>
+        <button className={styles.saveBtn} onClick={() => saveInspection("Draft")}>
+          Save Draft
+        </button>
+        <button className={styles.submitBtn} onClick={() => saveInspection("Submitted")}>
+          Submit Inspection
+        </button>
       </div>
 
-      {/* Raise Action Modal */}
-      {showModal !== null && (
+      {/* ===== MODAL ===== */}
+      {showModal && (
         <RaiseActionModal
           questionId={showModal}
           onClose={() => setShowModal(null)}
           onSave={handleSaveAction}
+          inspectionId={inspection._id}
         />
       )}
     </div>

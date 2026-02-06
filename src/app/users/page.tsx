@@ -25,7 +25,7 @@ export default function UsersPage() {
 
         const fetchUsers = async () => {
             try {
-                const res = await fetch("/api/users");
+                const res = await fetch("/api/auth/userList");
                 const data = await res.json();
                 if (!isMounted) return; // Stop if unmounted
                 setUsers(data.users || []);

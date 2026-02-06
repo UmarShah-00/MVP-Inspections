@@ -37,7 +37,6 @@ export default function Sidebar() {
       icon: <FiClipboard />,
       subMenu: [
         { name: "Inspection ", link: "/inspections" },
-        { name: "Create Inspection", link: "/inspections/create" },
       ],
     },
     {
