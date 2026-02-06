@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import styles from "@/styles/inspections.module.css";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaEye } from "react-icons/fa";
+import Swal from "sweetalert2";
 
 interface UserInfo {
   name: string;
@@ -21,12 +22,13 @@ interface Inspection {
 
 export default function InspectionsPage() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
+  const [loading, setLoading] = useState(true);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
 
   useEffect(() => {
     if (!token) return;
 
-    async function fetchInspections() {
+    const fetchInspections = async () => {
       try {
         const res = await fetch("/api/inspections", {
           headers: { Authorization: `Bearer ${token}` },
@@ -35,8 +37,16 @@ export default function InspectionsPage() {
         setInspections(Array.isArray(data) ? data : []);
       } catch (err) {
         console.error("Failed to fetch inspections:", err);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: "Failed to fetch inspections",
+          confirmButtonColor: "#000",
+        });
+      } finally {
+        setLoading(false);
       }
-    }
+    };
 
     fetchInspections();
   }, [token]);
@@ -46,8 +56,56 @@ export default function InspectionsPage() {
     return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
   };
 
+  const handleDelete = async (id: string) => {
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#000",
+      cancelButtonColor: "#d33",
+      confirmButtonText: "Yes, delete it!",
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/inspections/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      let data: any = {};
+      try {
+        data = await res.json();
+      } catch {
+        console.warn("Empty response from server");
+      }
+
+      if (!res.ok) throw new Error(data.error || "Failed to delete");
+
+      setInspections((prev) => prev.filter((i) => i._id !== id));
+
+      Swal.fire({
+        icon: "success",
+        title: "Deleted!",
+        text: "Inspection deleted successfully",
+        confirmButtonColor: "#000",
+      });
+    } catch (err: any) {
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: err.message || "Something went wrong",
+        confirmButtonColor: "#000",
+      });
+    }
+  };
+
   return (
     <div>
+      {/* Header Section */}
       <div className={styles.main}>
         <div>
           <h1 className={styles.title}>Inspections</h1>
@@ -60,62 +118,77 @@ export default function InspectionsPage() {
         </div>
       </div>
 
-      <div className={styles.table}>
-        <div className={styles.header}>
-          <span>#</span>
-          <span>Title</span>
-          <span>Date</span>
-          <span>Created By</span>
-          <span>Assigned To</span>
-          <span>Findings</span>
-          <span>Action</span>
-
+      {/* Loading or No Records Message */}
+      {loading && (
+        <div className={styles.loading} style={{ marginTop: "20px" }}>
+          Loading inspections...
         </div>
+      )}
+      {!loading && inspections.length === 0 && (
+        <div className={styles.noRecords} style={{ marginTop: "20px" }}>
+          No inspections added yet.
+        </div>
+      )}
 
-        {inspections.map((item, idx) => (
-          <Link key={item._id} href={`/inspections/${item._id}`} className={styles.row}>
-            <span>{idx + 1}</span>
+      {/* Inspections Table */}
+      {!loading && inspections.length > 0 && (
+        <div className={styles.table} style={{ marginTop: "20px" }}>
+          <div className={styles.header}>
+            <span>#</span>
+            <span>Title</span>
+            <span>Date</span>
+            <span>Created By</span>
+            <span>Assigned To</span>
+            <span>Findings</span>
+            <span>Action</span>
+          </div>
 
-            {/* Title */}
-            <span>{item.title}</span>
+          {inspections.map((item, idx) => (
+            <div key={item._id} className={styles.row}>
+              <span>{idx + 1}</span>
+              <span>{item.title}</span>
+              <span>
+                <span className={styles.badge}>{formatDate(item.date)}</span>
+              </span>
+              <span>
+                {item.createdBy?.name || "Unknown"}
+                <br />
+                <small className={styles.smallText}>{item.createdBy?.role || "N/A"}</small>
+              </span>
+              <span>
+                {item.assignedJS?.name || "Unassigned"}
+                <br />
+                <small className={styles.smallText}>{item.assignedJS?.role || "N/A"}</small>
+              </span>
+              <span>{item.findings || "N/A"}</span>
+              <span className={styles.actions}>
+                {/* View */}
+                <Link href={`/inspections/${item._id}`} title="View Inspection">
+                  <button className={styles.actionBtns}>
+                    <FaEye />
+                  </button>
+                </Link>
 
-            {/* Date as badge */}
-            <span>
-              <span className={styles.badge}>{formatDate(item.date)}</span>
-            </span>
+                {/* Edit */}
+                <Link href={`/inspections/edit/${item._id}`} title="Edit Inspection">
+                  <button className={styles.actionBtns}>
+                    <FaEdit />
+                  </button>
+                </Link>
 
-            {/* Created By */}
-            <span>
-              {item.createdBy?.name || "Unknown"}
-              <br />
-              <small className={styles.smallText}>{item.createdBy?.role || "N/A"}</small>
-            </span>
-
-            {/* Assigned JS */}
-            <span>
-              {item.assignedJS?.name || "Unassigned"}
-              <br />
-              <small className={styles.smallText}>{item.assignedJS?.role || "N/A"}</small>
-            </span>
-
-            {/* Findings */}
-            <span>{item.findings || "N/A"}</span>
-
-          <span className={styles.actions}>
-                      <Link href={"/categories/edit"}>
-                        <button className={styles.actionBtns}>
-                          <FaEdit />
-                        </button>
-                      </Link>
-                      <button
-                        className={styles.actionBtns}
-                      >
-                        <FaTrash />
-                      </button>
-                    </span>
-          </Link>
-        ))}
-      </div>
+                {/* Delete */}
+                <button
+                  className={styles.actionBtns}
+                  title="Delete Inspection"
+                  onClick={() => handleDelete(item._id)}
+                >
+                  <FaTrash />
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

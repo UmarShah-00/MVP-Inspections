@@ -20,7 +20,10 @@ interface Action {
 export default function ActionsPage() {
   const [actions, setActions] = useState<Action[]>([]);
   const [previewImg, setPreviewImg] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
   const fetchActions = async () => {
+    setLoading(true);
     try {
       const res = await fetch("/api/actions");
       const data = await res.json();
@@ -29,6 +32,8 @@ export default function ActionsPage() {
     } catch (err: any) {
       console.error(err);
       Swal.fire({ title: "Error", text: err.message, icon: "error" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -62,90 +67,118 @@ export default function ActionsPage() {
     }
   };
 
+  const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  };
+
   return (
     <div className={styles.container}>
+      {/* Header Section */}
       <div>
         <h1 className={styles.title}>Actions</h1>
-        <span className={styles.subTitle}>Manage all your Actions efficiently</span>
+        <span className={styles.subTitle}>Manage all your actions efficiently</span>
       </div>
 
-      <div className={styles.table}>
-        <div className={styles.header}>
-          <span>#</span>
-          <span>Title</span>
-          <span>Inspection</span>
-          <span>Created By</span>
-          <span>Due Date</span>
-          <span>Status</span>
-          <span>Evidence</span>
+      {/* Loading / No Records Messages */}
+      {loading && (
+        <div className={styles.loading} style={{ marginTop: "20px" }}>
+          Loading actions...
         </div>
+      )}
+      {!loading && actions.length === 0 && (
+        <div className={styles.noRecords} style={{ marginTop: "20px" }}>
+          No actions added yet.
+        </div>
+      )}
 
-        {actions.map((a) => (
-          <div key={a._id} className={styles.row}>
-            <span>{a.number}</span>
-            <span>{a.title}</span>
-            <span>{a.inspectionTitle}</span>
-            <span>
-              {a.createdByName}
-              <br />
-              <small style={{ fontSize: "10px", color: "#555" }}>{a.createdByRole}</small>
-            </span>
-            <span>{a.dueDate}</span>
-            <span>
-              <select
-                value={a.status}
-                onChange={(e) => handleStatusChange(a._id, e.target.value)}
-                className={styles.statusSelect}
-              >
-                <option value="Open">Open</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Closed">Closed</option>
-              </select>
-            </span>
-            <span>
-              {a.evidence.map((img, idx) => (
-                <img
-                  key={idx}
-                  src={img}
-                  alt="evidence"
-                  style={{ width: "50px", height: "50px", objectFit: "cover", marginRight: "4px", cursor: "pointer" }}
-                  onClick={() => setPreviewImg(img)} // click se open
-                />
-              ))}
-            </span>
+      {/* Actions Table */}
+      {!loading && actions.length > 0 && (
+        <div className={styles.table} style={{ marginTop: "20px" }}>
+          <div className={styles.header}>
+            <span>#</span>
+            <span>Title</span>
+            <span>Inspection</span>
+            <span>Created By</span>
+            <span>Due Date</span>
+            <span>Status</span>
+            <span>Evidence</span>
           </div>
-        ))}
-        {previewImg && (
-          <div
-            style={{
-              position: "fixed",
-              top: 0,
-              left: 0,
-              width: "100vw",
-              height: "100vh",
-              backgroundColor: "rgba(0,0,0,0.7)",
-              display: "flex",
-              justifyContent: "center",
-              alignItems: "center",
-              zIndex: 9999,
-              cursor: "pointer",
-            }}
-            onClick={() => setPreviewImg(null)} // click anywhere close
-          >
-            <img
-              src={previewImg}
-              alt="Preview"
+
+          {actions.map((a) => (
+            <div key={a._id} className={styles.row}>
+              <span>{a.number}</span>
+              <span>{a.title}</span>
+              <span>{a.inspectionTitle}</span>
+              <span>
+                {a.createdByName}
+                <br />
+                <small style={{ fontSize: "10px", color: "#555" }}>{a.createdByRole}</small>
+              </span>
+              <span className={styles.badge}>{formatDate(a.dueDate)}</span>
+              <span>
+                <select
+                  value={a.status}
+                  onChange={(e) => handleStatusChange(a._id, e.target.value)}
+                  className={styles.statusSelect}
+                >
+                  <option value="Open">Open</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Closed">Closed</option>
+                </select>
+              </span>
+              <span>
+                {a.evidence.map((img, idx) => (
+                  <img
+                    key={idx}
+                    src={img}
+                    alt="evidence"
+                    style={{
+                      width: "50px",
+                      height: "50px",
+                      objectFit: "cover",
+                      marginRight: "4px",
+                      cursor: "pointer",
+                    }}
+                    onClick={() => setPreviewImg(img)}
+                  />
+                ))}
+              </span>
+            </div>
+          ))}
+
+          {/* Preview Modal */}
+          {previewImg && (
+            <div
               style={{
-                maxWidth: "90%",
-                maxHeight: "90%",
-                borderRadius: "8px",
-                boxShadow: "0 0 10px #000",
+                position: "fixed",
+                top: 0,
+                left: 0,
+                width: "100vw",
+                height: "100vh",
+                backgroundColor: "rgba(0,0,0,0.7)",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                zIndex: 9999,
+                cursor: "pointer",
               }}
-            />
-          </div>
-        )}
-
-      </div>
+              onClick={() => setPreviewImg(null)}
+            >
+              <img
+                src={previewImg}
+                alt="Preview"
+                style={{
+                  maxWidth: "90%",
+                  maxHeight: "90%",
+                  borderRadius: "8px",
+                  boxShadow: "0 0 10px #000",
+                }}
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

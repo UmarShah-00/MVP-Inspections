@@ -23,20 +23,18 @@ export default function LoginForm() {
       const data = await res.json();
 
       if (!res.ok) {
-        return alert(data.error || "Login failed"); // SweetAlert remove, simple alert
+        return alert(data.error || "Login failed");
       }
 
-      // Save token in localStorage (for client-side usage)
       localStorage.setItem("token", data.token);
-
-      // Optional: save in cookie for server-side checks
+      localStorage.setItem("userId", data.user._id);
+      localStorage.setItem("role", data.user.role);
       document.cookie = `token=${data.token}; path=/; max-age=${7 * 24 * 60 * 60}`;
 
-      // Directly redirect to dashboard
       router.push("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Something went wrong"); // Simple error alert
+      alert("Something went wrong");
     }
   }
 

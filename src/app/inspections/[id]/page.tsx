@@ -22,6 +22,14 @@ export default function InspectionDetail() {
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [actions, setActions] = useState<Action[]>([]);
   const [showModal, setShowModal] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<"main contractor" | "subcontractor" | "">("");
+
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role) {
+      setUserRole(role.toLowerCase() as "main contractor" | "subcontractor");
+    }
+  }, []);
 
   // Fetch inspection data
   useEffect(() => {
@@ -163,7 +171,7 @@ export default function InspectionDetail() {
         </div>
       </div>
 
-      {/* ===== QUESTIONS ===== */}
+
       {/* ===== QUESTIONS ===== */}
       <div className={styles.questions}>
         {questions.map((q) => {
@@ -197,33 +205,32 @@ export default function InspectionDetail() {
               )}
 
               {answer === "No" && (
-                <button
-                  className={`${styles.actionBtn} ${status && status !== "Closed" ? styles.actionSaved : ""}`}
-                  onClick={() => {
-                    if (!status) setShowModal(q._id);
-                    else
-                      Swal.fire({
-                        title: "Info",
-                        text: status === "Closed" ? "Action Closed" : "Action already saved",
-                        icon: "info",
-                        iconColor: "#dc2626",
-                        confirmButtonColor: "#000",
-                        confirmButtonText: "OK",
-                      });
-                  }}
-                  style={{
-                    backgroundColor: !status ? "#ef4444" : status === "Closed" ? "#555" : "#22c55e",
-                  }}
-                >
-                  {!status ? "+ Raise Action" : status === "Closed" ? "Action Closed" : `Action Saved (${status})`}
-                </button>
+                userRole === "main contractor" ? (
+                  <button
+                    className={`${styles.actionBtn} ${status ? styles.actionSaved : ""}`}
+                    onClick={() => {
+                      if (!status) setShowModal(q._id);
+                    }}
+                  >
+                    {!status ? "+ Raise Action" : `Action Saved (${status})`}
+                  </button>
+                ) : (
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#dc2626",
+                      marginTop: "4px",
+                    }}
+                  >
+                    Answer: No
+                  </p>
+                )
               )}
+
             </div>
           );
         })}
       </div>
-
-
       {/* ===== FOOTER ===== */}
       <div className={styles.footer}>
         <button className={styles.secondary} onClick={() => router.back()}>

@@ -20,7 +20,7 @@ interface Props {
 
 export default function CategoryTable({ categories, loading, onDelete }: Props) {
   if (loading) return <div className={styles.loading}>Loading...</div>;
-  if (categories.length === 0) return <div className={styles.noRecords}>No questions added yet.</div>;
+  if (categories.length === 0) return <div className={styles.noRecords}>No categories added yet.</div>;
 
   const handleDelete = (id: string) => {
     Swal.fire({

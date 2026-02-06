@@ -6,6 +6,7 @@ import { signToken } from "@/lib/jwt";
 
 export async function POST(req: NextRequest) {
   await connectDB();
+
   const { email, password } = await req.json();
 
   if (!email || !password) {
@@ -25,13 +26,17 @@ export async function POST(req: NextRequest) {
 
   const token = signToken({
     id: user._id,
-    name: user.name, 
+    name: user.name,
     email: user.email,
     role: user.role,
   });
 
   return NextResponse.json({
     token,
-    user: { email: user.email, name: user.name, role: user.role },
+    user: {
+      name: user.name,
+      email: user.email,
+      role: user.role, 
+    },
   });
 }

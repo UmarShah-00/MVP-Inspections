@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { title, date, categoryId, subcontractorId } = await req.json();
+    const { title, date, categoryId, subcontractorId, description  } = await req.json();
 
     if (!title || !date || !categoryId || !subcontractorId) {
       return NextResponse.json(
@@ -43,6 +43,7 @@ export async function POST(req: NextRequest) {
       subcontractorId,
       createdBy: user.id,
       status: "Draft",
+      description: description || "",
       answers: [],
     });
 

@@ -13,6 +13,7 @@ export interface IInspection extends Document {
   subcontractorId: mongoose.Types.ObjectId;
   createdBy: mongoose.Types.ObjectId;
   status: "Draft" | "Submitted";
+  description?: string;
   answers: IAnswer[];
   createdAt: Date;
   updatedAt: Date;
@@ -47,6 +48,7 @@ const InspectionSchema = new Schema<IInspection>(
     },
     createdBy: { type: Schema.Types.ObjectId, ref: "User", required: true },
     status: { type: String, enum: ["Draft", "Submitted"], default: "Draft" },
+    description: { type: String, trim: true },
     answers: [AnswerSchema],
   },
   { timestamps: true },

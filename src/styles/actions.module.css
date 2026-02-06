@@ -49,3 +49,21 @@
     border: 1px solid #000;
     cursor: pointer;
 }
+.badge {
+  font-size: 12px;
+  font-weight: 500;
+  width: fit-content;
+}
+.loading {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.noRecords {
+    padding: 20px;
+    text-align: center;
+    color: #6b7280;
+    font-size: 14px;
+    grid-column: 1 / -1;
+}

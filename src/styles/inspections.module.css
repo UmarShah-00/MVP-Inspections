@@ -2,13 +2,14 @@
    LAYOUT / PAGE
 ====================================================== */
 .main {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-    gap: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
+
 .title {
   font-size: 26px;
   font-weight: 600;
@@ -184,6 +185,20 @@
   color: #555;
 }
 
+.loading {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+}
+
+.noRecords {
+  padding: 20px;
+  text-align: center;
+  color: #6b7280;
+  font-size: 14px;
+  grid-column: 1 / -1;
+}
+
 /* ======================================================
    FOOTER BUTTONS
 ====================================================== */
@@ -293,6 +308,7 @@
   border: none;
   cursor: pointer;
 }
+
 .modal select {
   padding: 10px;
   border-radius: 8px;
@@ -371,6 +387,7 @@
   font-weight: 500;
   width: fit-content;
 }
+
 .raiseBtn {
   margin-top: 12px;
   padding: 8px 14px;
@@ -379,21 +396,24 @@
   font-weight: 600;
   border: none;
   cursor: pointer;
-  background: #dc2626; /* red */
+  background: #dc2626;
+  /* red */
   color: #fff;
 }
 
 .savedBtn {
-  background: #16a34a; /* green */
+  background: #16a34a;
+  /* green */
   color: #fff;
 }
 
 .closedBtn {
-  background: #4b5563; /* gray */
+  background: #4b5563;
+  /* gray */
   color: #fff;
   cursor: not-allowed;
 }
+
 .required {
   color: #dc2626;
 }
-
