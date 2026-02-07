@@ -159,7 +159,7 @@ export default function InspectionDetail() {
             <span className={styles.status}>{inspection.status}</span>
           </div>
           <div className={styles.metaItem}>
-            <span className={styles.metaLabel}>Assigned JS</span>
+            <span className={styles.metaLabel}>Assigned To</span>
             <span className={styles.metaValue}>{inspection.subcontractorId?.name || "Unassigned"}</span>
             <small className={styles.metaSub}>{inspection.subcontractorId?.role || "N/A"}</small>
           </div>

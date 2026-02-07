@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const userId = decoded.id;
     const userRole = decoded.role?.toLowerCase() || "";
 
-    // 🔹 Query logic
+    // Subcontractor sees only their actions
     const query: any = userRole === "subcontractor" ? { assignee: userId } : {};
 
     const actions = await Action.find(query)
@@ -41,11 +41,23 @@ export async function GET(req: NextRequest) {
       actions.map(async (a, idx) => {
         const inspection = a.inspectionId as any;
 
-        // Populate inspection creator
+        // ✅ Role-based Created By logic
         let createdByName = "N/A";
         let createdByRole = "N/A";
-        if (inspection?.createdBy) {
-          const user = await User.findById(inspection.createdBy).lean();
+
+        if (userRole === "subcontractor") {
+          // Subcon sees action creator = JS who created inspection
+          if (inspection?.createdBy) {
+            const user = await User.findById(inspection.createdBy).lean();
+            if (user) {
+              createdByName = user.name;
+              createdByRole = user.role;
+            }
+          }
+        } else {
+          // Main contractor sees Assigned JS
+          const assigneeId = a.assignee;
+          const user = await User.findById(assigneeId).lean();
           if (user) {
             createdByName = user.name;
             createdByRole = user.role;
@@ -76,7 +88,6 @@ export async function GET(req: NextRequest) {
     );
   }
 }
-
 
 export async function PATCH(req: NextRequest) {
   try {

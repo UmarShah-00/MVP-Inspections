@@ -3,7 +3,7 @@ import connectDB from "@/lib/db";
 import Inspection from "@/models/Inspection";
 import User from "@/models/User";
 import { verifyToken, type DecodedToken } from "@/lib/jwt";
-
+import Category from "@/models/Category";
 /** Helper: Get user from Authorization header */
 function getUserFromRequest(req: NextRequest): DecodedToken | null {
   const authHeader = req.headers.get("authorization");
@@ -107,6 +107,12 @@ export async function GET(req: NextRequest) {
             .lean();
           if (user) assignedJS = user;
         }
+
+         let category = { name: "N/A" };
+        if (insp.categoryId) {
+          const cat = await Category.findById(insp.categoryId).select("name").lean();
+          if (cat) category = cat;
+        }
         // 🔹 Findings count
         const findingsCount = (insp.answers || []).filter(
           (ans) => ans.answer === "No" && !ans.actionId,
@@ -116,6 +122,7 @@ export async function GET(req: NextRequest) {
           ...insp,
           createdBy: createdBy || { name: "Unknown", role: "N/A" },
           assignedJS: assignedJS || { name: "Unassigned", role: "N/A" },
+          category,
           findings: findingsCount,
         };
       }),

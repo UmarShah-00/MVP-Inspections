@@ -15,6 +15,7 @@ interface Inspection {
   _id: string;
   title: string;
   date: string;
+  category: string;
   createdBy: UserInfo;
   assignedJS: UserInfo;
   findings: string;
@@ -146,8 +147,8 @@ export default function InspectionsPage() {
             <span>#</span>
             <span>Title</span>
             <span>Date</span>
-            <span>Created By</span>
-            <span>Assigned To</span>
+            <span>Category</span> {/* New column */}
+            <span>{userRole === "subcontractor" ? "Created By" : "Assigned To"}</span>
             <span>Findings</span>
             <span>Action</span>
           </div>
@@ -159,16 +160,23 @@ export default function InspectionsPage() {
               <span>
                 <span className={styles.badge}>{formatDate(item.date)}</span>
               </span>
+
+              {/* Category Column */}
+              <span>{(item as any).category?.name || "N/A"}</span>
+
+              {/* Dynamic field: Created By / Assigned To */}
               <span>
-                {item.createdBy?.name || "Unknown"}
+                {userRole === "subcontractor"
+                  ? item.createdBy?.name || "Unknown"   // Main Contractor / JS
+                  : item.assignedJS?.name || "Unassigned"}
                 <br />
-                <small className={styles.smallText}>{item.createdBy?.role || "N/A"}</small>
+                <small className={styles.smallText}>
+                  {userRole === "subcontractor"
+                    ? item.createdBy?.role || "N/A"
+                    : item.assignedJS?.role || "N/A"}
+                </small>
               </span>
-              <span>
-                {item.assignedJS?.name || "Unassigned"}
-                <br />
-                <small className={styles.smallText}>{item.assignedJS?.role || "N/A"}</small>
-              </span>
+
               <span>{item.findings || "N/A"}</span>
               <span className={styles.actions}>
                 {/* View */}
