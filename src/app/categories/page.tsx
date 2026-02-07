@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import CategoryTable from "@/components/categories/CategoryTable";
 import Link from "next/link";
 import styles from "@/styles/Category.module.css";
-
+import { useRouter } from "next/navigation";
 interface ICategory {
   _id: string;
   code: string;
@@ -15,6 +15,13 @@ interface ICategory {
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<ICategory[]>([]);
   const [loading, setLoading] = useState(true);
+const router = useRouter();
+  useEffect(() => {
+    const role = localStorage.getItem("role")?.toLowerCase();
+    if (role === "subcontractor") {
+      router.replace("/"); // Redirect to dashboard/home
+    }
+  }, [router]);
 
   // Fetch categories from API
   useEffect(() => {
@@ -23,7 +30,10 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const res = await fetch("/api/categories");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/categories", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       const data = await res.json();
       setCategories(data.categories || []);
     } catch (err) {
@@ -36,8 +46,10 @@ export default function CategoriesPage() {
   // Delete handler
   const handleDelete = async (id: string) => {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch(`/api/categories/${id}`, {
         method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setCategories(categories.filter((c) => c._id !== id));

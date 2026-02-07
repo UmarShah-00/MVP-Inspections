@@ -2,25 +2,48 @@
 import { NextRequest, NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Action from "@/models/Action";
-import Inspection from "@/models/Inspection";
 import User from "@/models/User";
+import { verifyToken, type DecodedToken } from "@/lib/jwt";
+import Inspection from "@/models/Inspection";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
-    // Fetch all actions with inspection and JS info
-    const actions = await Action.find()
-      .populate("inspectionId", "title createdBy")
+    const authHeader = req.headers.get("authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const token = authHeader.split(" ")[1];
+    let decoded: DecodedToken;
+    try {
+      decoded = verifyToken(token);
+    } catch {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = decoded.id;
+    const userRole = decoded.role?.toLowerCase() || "";
+
+    // 🔹 Query logic
+    const query: any = userRole === "subcontractor" ? { assignee: userId } : {};
+
+    const actions = await Action.find(query)
+      .populate({
+        path: "inspectionId",
+        select: "title createdBy",
+        model: Inspection,
+      })
       .lean();
 
-    // Map actions to include createdBy name/role from users
     const mapped = await Promise.all(
       actions.map(async (a, idx) => {
         const inspection = a.inspectionId as any;
+
+        // Populate inspection creator
         let createdByName = "N/A";
         let createdByRole = "N/A";
-
         if (inspection?.createdBy) {
           const user = await User.findById(inspection.createdBy).lean();
           if (user) {
@@ -30,18 +53,18 @@ export async function GET() {
         }
 
         return {
-          number: idx + 1, // # column
+          number: idx + 1,
           _id: a._id,
           title: a.title,
           inspectionTitle: inspection?.title || "N/A",
           createdByName,
           createdByRole,
-          assignee: a.assignee,
+          assignee: a.assignee.toString(),
           dueDate: a.dueDate.toISOString().split("T")[0],
           status: a.status,
-          evidence: a.evidence || [], // array of image paths
+          evidence: a.evidence || [],
         };
-      }),
+      })
     );
 
     return NextResponse.json({ actions: mapped }, { status: 200 });
@@ -49,10 +72,11 @@ export async function GET() {
     console.error("GET Actions Error:", err);
     return NextResponse.json(
       { error: err.message || "Failed to fetch actions" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
+
 
 export async function PATCH(req: NextRequest) {
   try {

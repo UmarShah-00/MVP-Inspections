@@ -24,6 +24,7 @@ export default function InspectionsPage() {
   const [inspections, setInspections] = useState<Inspection[]>([]);
   const [loading, setLoading] = useState(true);
   const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+  const [userRole, setUserRole] = useState<string>("");
 
   useEffect(() => {
     if (!token) return;
@@ -50,6 +51,12 @@ export default function InspectionsPage() {
 
     fetchInspections();
   }, [token]);
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+    if (role) {
+      setUserRole(role.toLowerCase());
+    }
+  }, []);
 
   const formatDate = (dateStr: string) => {
     const d = new Date(dateStr);
@@ -112,9 +119,11 @@ export default function InspectionsPage() {
           <span className={styles.subTitle}>Manage all your inspections efficiently</span>
         </div>
         <div>
-          <Link href="/inspections/create" className={styles.createBtn}>
-            + Add Inspection
-          </Link>
+          {userRole !== "subcontractor" && (
+            <Link href="/inspections/create" className={styles.createBtn}>
+              + Add Inspection
+            </Link>
+          )}
         </div>
       </div>
 
@@ -169,21 +178,23 @@ export default function InspectionsPage() {
                   </button>
                 </Link>
 
-                {/* Edit */}
-                <Link href={`/inspections/edit/${item._id}`} title="Edit Inspection">
-                  <button className={styles.actionBtns}>
-                    <FaEdit />
-                  </button>
-                </Link>
+                {userRole !== "subcontractor" && (
+                  <>
+                    <Link href={`/inspections/edit/${item._id}`} title="Edit Inspection">
+                      <button className={styles.actionBtns}>
+                        <FaEdit />
+                      </button>
+                    </Link>
 
-                {/* Delete */}
-                <button
-                  className={styles.actionBtns}
-                  title="Delete Inspection"
-                  onClick={() => handleDelete(item._id)}
-                >
-                  <FaTrash />
-                </button>
+                    <button
+                      className={styles.actionBtns}
+                      title="Delete Inspection"
+                      onClick={() => handleDelete(item._id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </>
+                )}
               </span>
             </div>
           ))}

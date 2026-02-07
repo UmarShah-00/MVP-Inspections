@@ -19,7 +19,16 @@ function getUserFromRequest(req: NextRequest): DecodedToken | null {
 }
 
 /** CREATE INSPECTION */
+
 export async function POST(req: NextRequest) {
+  const user = getUserFromRequest(req);
+  if (!user)
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (user.role?.toLowerCase() === "subcontractor") {
+    return NextResponse.json({ error: "Permission denied" }, { status: 403 });
+  }
+
   try {
     await connectDB();
 
@@ -27,12 +36,13 @@ export async function POST(req: NextRequest) {
     if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-    const { title, date, categoryId, subcontractorId, description  } = await req.json();
+    const { title, date, categoryId, subcontractorId, description } =
+      await req.json();
 
     if (!title || !date || !categoryId || !subcontractorId) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -52,45 +62,54 @@ export async function POST(req: NextRequest) {
     console.error("Create Inspection Error:", error.message, error.stack);
     return NextResponse.json(
       { error: "Failed to create inspection" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
 /** GET INSPECTIONS (safe populate with fallback) */
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
-    const inspections = await Inspection.find().lean().sort({ createdAt: -1 });
+    // 🔐 Get logged-in user
+    const user = getUserFromRequest(req);
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 🔎 Role-based filter
+    const filter: any = {};
+    if (user.role?.toLowerCase() === "subcontractor") {
+      filter.subcontractorId = user.id;
+    }
+
+    const inspections = await Inspection.find(filter)
+      .lean()
+      .sort({ createdAt: -1 });
 
     const populated = await Promise.all(
       inspections.map(async (insp) => {
         // 🔹 Populate CreatedBy safely
-        let createdBy = null;
-        try {
-          createdBy = await User.findById(insp.createdBy)
+        let createdBy = { name: "Unknown", role: "N/A" };
+        if (insp.createdBy) {
+          const user = await User.findById(insp.createdBy)
             .select("name role")
             .lean();
-        } catch {
-          createdBy = { name: "Unknown", role: "N/A" };
+          if (user) createdBy = user;
         }
 
         // 🔹 Populate Assigned JS / subcontractor safely
-        let assignedJS = null;
-        try {
-          assignedJS = insp.subcontractorId
-            ? await User.findById(insp.subcontractorId)
-                .select("name role")
-                .lean()
-            : { name: "Unassigned", role: "N/A" };
-        } catch {
-          assignedJS = { name: "Unassigned", role: "N/A" };
+        let assignedJS = { name: "Unassigned", role: "N/A" };
+        if (insp.subcontractorId) {
+          const user = await User.findById(insp.subcontractorId)
+            .select("name role")
+            .lean();
+          if (user) assignedJS = user;
         }
-
-        // 🔹 Findings = count of "No" answers WITHOUT any action raised yet
+        // 🔹 Findings count
         const findingsCount = (insp.answers || []).filter(
-          (ans) => ans.answer === "No" && !ans.actionId
+          (ans) => ans.answer === "No" && !ans.actionId,
         ).length;
 
         return {
@@ -99,7 +118,7 @@ export async function GET() {
           assignedJS: assignedJS || { name: "Unassigned", role: "N/A" },
           findings: findingsCount,
         };
-      })
+      }),
     );
 
     return NextResponse.json(populated, { status: 200 });
@@ -107,7 +126,7 @@ export async function GET() {
     console.error("Fetch Inspections Error:", err.message, err.stack);
     return NextResponse.json(
       { error: "Failed to fetch inspections" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

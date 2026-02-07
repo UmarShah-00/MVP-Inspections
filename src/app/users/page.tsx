@@ -21,26 +21,29 @@ export default function UsersPage() {
 
     // Fetch all users
     useEffect(() => {
-        let isMounted = true; // Add flag
-
         const fetchUsers = async () => {
             try {
-                const res = await fetch("/api/auth/userList");
+                const token = localStorage.getItem("token");
+                const res = await fetch("/api/auth/userList", {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                if (res.status === 403) {
+                    // Subcontractor blocked, redirect to home
+                    window.location.href = "/";
+                    return;
+                }
+
                 const data = await res.json();
-                if (!isMounted) return; // Stop if unmounted
                 setUsers(data.users || []);
             } catch (err) {
                 console.error(err);
             } finally {
-                if (isMounted) setLoading(false);
+                setLoading(false);
             }
         };
 
         fetchUsers();
-
-        return () => {
-            isMounted = false; // Cleanup
-        };
     }, []);
 
     // Handle delete

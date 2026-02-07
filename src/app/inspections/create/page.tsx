@@ -19,9 +19,23 @@ interface Subcontractor {
 }
 
 export default function CreateInspectionPage() {
+  const router = useRouter();
+  useEffect(() => {
+    const role = localStorage.getItem("role");
+
+    if (role?.toLowerCase() === "subcontractor") {
+      Swal.fire({
+        icon: "error",
+        title: "Access Denied",
+        text: "You are not allowed to create inspections",
+        confirmButtonColor: "#000",
+      }).then(() => {
+        router.replace("/inspections");
+      });
+    }
+  }, [router]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [subcontractors, setSubcontractors] = useState<Subcontractor[]>([]);
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState({
     title: "",
@@ -168,6 +182,10 @@ export default function CreateInspectionPage() {
       setLoading(false);
     }
   };
+  const role =
+    typeof window !== "undefined" ? localStorage.getItem("role") : null;
+
+  if (role?.toLowerCase() === "subcontractor") return null;
 
   return (
     <div className={styles.page}>
@@ -191,7 +209,7 @@ export default function CreateInspectionPage() {
               placeholder="Site Safety Inspection"
               value={form.title}
               onChange={handleChange}
-              
+
             />
           </div>
 
@@ -202,7 +220,7 @@ export default function CreateInspectionPage() {
               name="categoryId"
               value={form.categoryId}
               onChange={handleChange}
-              
+
             >
               <option value="">Select Category</option>
               {categories.map((c) => (
@@ -221,7 +239,7 @@ export default function CreateInspectionPage() {
               name="date"
               value={form.date}
               onChange={handleChange}
-              
+
             />
           </div>
 
@@ -232,7 +250,7 @@ export default function CreateInspectionPage() {
               name="subcontractorId"
               value={form.subcontractorId}
               onChange={handleChange}
-              
+
             >
               <option value="">Select Subcontractor</option>
               {subcontractors.map((s) => (

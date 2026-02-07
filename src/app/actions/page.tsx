@@ -22,20 +22,29 @@ export default function ActionsPage() {
   const [previewImg, setPreviewImg] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchActions = async () => {
-    setLoading(true);
-    try {
-      const res = await fetch("/api/actions");
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to fetch actions");
-      setActions(data.actions || []);
-    } catch (err: any) {
-      console.error(err);
-      Swal.fire({ title: "Error", text: err.message, icon: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
+const fetchActions = async () => {
+  setLoading(true);
+  try {
+    const token = localStorage.getItem("token"); // JWT token
+    if (!token) throw new Error("Unauthorized: No token found");
+
+    const res = await fetch("/api/actions", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+      },
+    });
+
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || "Failed to fetch actions");
+
+    setActions(data.actions || []);
+  } catch (err: any) {
+    console.error(err);
+    Swal.fire({ title: "Error", text: err.message, icon: "error" });
+  } finally {
+    setLoading(false);
+  }
+};
 
   useEffect(() => {
     fetchActions();

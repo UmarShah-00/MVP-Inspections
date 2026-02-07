@@ -6,6 +6,7 @@ import Action from "@/models/Action";
 import Question from "@/models/Question";
 import fs from "fs";
 import path from "path";
+import mongoose from "mongoose";
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -18,15 +19,20 @@ export async function GET(
       .populate("categoryId", "name")
       .lean();
 
-    if (!inspection)
+    if (!inspection.categoryId) {
       return NextResponse.json(
-        { error: "Inspection not found" },
-        { status: 404 },
+        {
+          inspection,
+          questions: [],
+          actions: [],
+          warning: "Category missing or deleted for this inspection",
+        },
+        { status: 200 },
       );
-
+    }
     // Fetch only questions for this inspection's category
     const questions = await Question.find({
-      categoryId: inspection.categoryId._id,
+      categoryId: inspection.categoryId,
     }).lean();
 
     // Fetch actions for this inspection
@@ -111,7 +117,7 @@ export async function PATCH(
 
       const action = await Action.create({
         title: a.title,
-        assignee: a.assignee,
+        assignee: new mongoose.Types.ObjectId(a.assignee), 
         dueDate: a.dueDate,
         status: a.status || "Open",
         evidence: files,
@@ -121,7 +127,6 @@ export async function PATCH(
 
       savedActions.push(action);
 
-      // Link action to inspection answer
       const answer = inspection.answers.find(
         (ans) => ans.questionId.toString() === a.questionId.toString(),
       );
@@ -142,4 +147,3 @@ export async function PATCH(
     );
   }
 }
-

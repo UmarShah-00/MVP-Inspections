@@ -54,6 +54,7 @@ const InspectionSchema = new Schema<IInspection>(
   { timestamps: true },
 );
 
+// ✅ Important: hot-reload safe
 const Inspection =
   models.Inspection || model<IInspection>("Inspection", InspectionSchema);
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Swal from "sweetalert2";
 import QuestionList from "@/components/questions/QuestionList";
+import { useRouter } from "next/navigation";
 import styles from "@/styles/Question.module.css";
 
 interface Question {
@@ -15,6 +16,15 @@ interface Question {
 export default function QuestionsTablePage() {
   const [questions, setQuestions] = useState<Question[]>([]);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  // 🔹 Block subcontractor from accessing page
+  useEffect(() => {
+    const role = localStorage.getItem("role")?.toLowerCase();
+    if (role === "subcontractor") {
+      router.replace("/"); // Redirect to home/dashboard
+    }
+  }, [router]);
 
   useEffect(() => {
     fetchQuestions();
@@ -22,10 +32,13 @@ export default function QuestionsTablePage() {
 
   const fetchQuestions = async () => {
     try {
-      const res = await fetch("/api/questions");
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/questions", {
+        headers: { Authorization: `Bearer ${token}` }, // token protected
+      });
       const data = await res.json();
 
-      const mappedQuestions = data.questions.map((q: any) => ({
+      const mappedQuestions = (data.questions || []).map((q: any) => ({
         id: q._id,
         categoryName: q.categoryId?.name || "Unknown",
         text: q.text,
@@ -41,10 +54,14 @@ export default function QuestionsTablePage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const res = await fetch(`/api/questions/${id}`, { method: "DELETE" });
+      const token = localStorage.getItem("token");
+      const res = await fetch(`/api/questions/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` }, // token protected
+      });
       if (!res.ok) throw new Error("Failed to delete question");
 
-      setQuestions(questions.filter((q) => q.id !== id));
+      setQuestions((prev) => prev.filter((q) => q.id !== id));
 
       Swal.fire({
         title: "Deleted!",

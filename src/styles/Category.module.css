@@ -148,7 +148,7 @@
 .header,
 .row {
     display: grid;
-    grid-template-columns: 120px 350px 550px 120px;
+    grid-template-columns: 200px 400px 400px 120px;
     /* fixed widths */
     padding: 12px 16px;
     align-items: center;

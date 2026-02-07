@@ -1,6 +1,6 @@
 "use client";
 
-import styles from "./Layout.module.css";
+import styles from "@/styles/Layout.module.css";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 

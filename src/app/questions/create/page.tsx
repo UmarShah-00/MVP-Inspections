@@ -2,29 +2,42 @@
 
 import { useState, useEffect } from "react";
 import QuestionForm from "@/components/questions/QuestionForm";
+import { useRouter } from "next/navigation";
 import styles from "@/styles/Question.module.css";
 
 export default function QuestionsFormPage() {
-    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const router = useRouter();
 
-    useEffect(() => {
-        fetchCategories();
-    }, []);
+  // 🔹 Block subcontractor
+  useEffect(() => {
+    const role = localStorage.getItem("role")?.toLowerCase();
+    if (role === "subcontractor") {
+      router.replace("/"); // Redirect to home/dashboard
+    }
+  }, [router]);
 
-    const fetchCategories = async () => {
-        try {
-            const res = await fetch("/api/categories");
-            const data = await res.json();
-            setCategories(data.categories.map((c: any) => ({ id: c._id, name: c.name })));
-        } catch (err) {
-            console.error(err);
-        }
-    };
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
-    const handleSave = (data: { categoryId: string; text: string }) => {
-        console.log("Saved question:", data);
-        alert("Question saved!");
-    };
+  const fetchCategories = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch("/api/categories", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      setCategories(data.categories.map((c: any) => ({ id: c._id, name: c.name })));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleSave = (data: { categoryId: string; text: string }) => {
+    console.log("Saved question:", data);
+    alert("Question saved!");
+  };
 
     return (
         <div>

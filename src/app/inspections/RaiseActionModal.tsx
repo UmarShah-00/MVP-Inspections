@@ -141,12 +141,11 @@ export default function RaiseActionModal({
         <select value={assignee} onChange={(e) => setAssignee(e.target.value)}>
           <option value="">Select a subcontractor</option>
           {subcontractors.map((user) => (
-            <option key={user._id} value={user.name}>
+            <option key={user._id} value={user._id}>
               {user.name}
             </option>
           ))}
         </select>
-
         <label>
           Due Date <span className={styles.required}>*</span>
         </label>

@@ -1,9 +1,9 @@
 "use client";
 
-import styles from "./Layout.module.css";
+import styles from "@/styles/Layout.module.css";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import React, { useState, useEffect, JSX } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useState, useEffect, JSX } from "react";
 
 // Icons
 import {
@@ -14,6 +14,7 @@ import {
   FiChevronDown,
   FiFolder,
   FiEdit,
+  FiLogOut,
 } from "react-icons/fi";
 
 interface MenuItem {
@@ -22,110 +23,117 @@ interface MenuItem {
   icon: JSX.Element;
   link?: string;
   subMenu?: { name: string; link: string }[];
+  role?: "all" | "main" | "sub"; // Role-based
 }
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const router = useRouter();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string>("");
 
-  // Menu definitions
+  useEffect(() => {
+    const role = localStorage.getItem("role")?.toLowerCase() || "";
+    setUserRole(role);
+  }, []);
+
   const menuItems: MenuItem[] = [
-    { key: "dashboard", name: "Dashboard", icon: <FiHome />, link: "dashboard" },
+    { key: "dashboard", name: "Dashboard", icon: <FiHome />, link: "/dashboard", role: "all" },
     {
       key: "inspections",
       name: "Inspections",
       icon: <FiClipboard />,
-      subMenu: [
-        { name: "Inspection ", link: "/inspections" },
-      ],
+      subMenu: [{ name: "Inspection", link: "/inspections" }],
+      role: "all",
     },
     {
       key: "actions",
       name: "Actions",
       icon: <FiCheckSquare />,
-      subMenu: [{ name: "Actions ", link: "/actions" }],
+      subMenu: [{ name: "Actions", link: "/actions" }],
+      role: "all",
     },
-      {
-       key: "users",
+    {
+      key: "users",
       name: "Users",
       icon: <FiUsers />,
-      subMenu: [{ name: "Users ", link: "/users" }],
+      subMenu: [{ name: "Users", link: "/users" }],
+      role: "main",
     },
     {
       key: "categories",
       name: "Categories",
       icon: <FiFolder />,
-      subMenu: [{ name: "Category ", link: "/categories" }],
+      subMenu: [{ name: "Categories", link: "/categories" }],
+      role: "main",
     },
-       {
-       key: "questions",
+    {
+      key: "questions",
       name: "Questions",
       icon: <FiEdit />,
       subMenu: [{ name: "Questions", link: "/questions" }],
+      role: "main",
+    },
+    {
+      key: "logout",
+      name: "Logout",
+      icon: <FiLogOut />,
+      link: "#",
+      role: "all",
     },
   ];
 
-  // Auto open current menu based on URL
-  useEffect(() => {
-    const activeItem = menuItems.find((item) => {
-      if (item.link && item.link === pathname) return true;
-      if (item.subMenu?.some((sub) => sub.link === pathname)) return true;
-      return false;
-    });
-    if (activeItem) setOpenMenu(activeItem.key);
-  }, [pathname]);
+  const handleClick = (key: string) => {
+    setOpenMenu(openMenu === key ? null : key);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    router.push("/login");
+  };
 
   return (
     <aside className={styles.sidebar}>
       <h2 className={styles.logo}>MVP Inspection</h2>
 
       <nav className={styles.menu}>
-        {menuItems.map((item) => (
-          <div key={item.key}>
-            {item.subMenu ? (
-              <>
+        {menuItems
+          .filter((item) => item.role === "all" || (item.role === "main" && userRole === "main contractor") || (item.role === "sub" && userRole === "subcontractor"))
+          .map((item) => {
+            const hasSubMenu = item.subMenu && item.subMenu.length > 0;
+
+            // Determine click action
+            let onClick: (() => void) | undefined;
+            if (item.key === "logout") onClick = handleLogout;
+            else if (hasSubMenu) onClick = () => handleClick(item.key);
+
+            return (
+              <div key={item.key}>
                 <button
-                  className={`${styles.menuItem} ${openMenu === item.key ? styles.active : ""
-                    }`}
-                  onClick={() =>
-                    setOpenMenu(openMenu === item.key ? null : item.key)
-                  }
+                  className={`${styles.menuItem} ${openMenu === item.key ? styles.active : ""}`}
+                  onClick={onClick}
+                  type="button"
                 >
                   <div className={styles.menuLeft}>
                     <span className={styles.icon}>{item.icon}</span>
                     <span>{item.name}</span>
                   </div>
-                  <FiChevronDown
-                    className={`${styles.chevron} ${openMenu === item.key ? styles.rotate : ""
-                      }`}
-                  />
+                  {hasSubMenu && <FiChevronDown className={`${styles.chevron} ${openMenu === item.key ? styles.rotate : ""}`} />}
                 </button>
-                {openMenu === item.key && (
+
+                {hasSubMenu && openMenu === item.key && (
                   <div className={styles.subMenu}>
-                    {item.subMenu.map((sub) => (
-                      <Link
-                        key={sub.link}
-                        href={sub.link}
-                        className={pathname === sub.link ? styles.active : ""}
-                      >
+                    {item.subMenu!.map((sub) => (
+                      <Link key={sub.link} href={sub.link} className={pathname === sub.link ? styles.active : ""}>
                         {sub.name}
                       </Link>
                     ))}
                   </div>
                 )}
-              </>
-            ) : (
-              <Link
-                href={item.link || "#"}
-                className={`${styles.menuItem} ${pathname === item.link ? styles.active : ""
-                  }`}
-              >
-                <span className={styles.icon}>{item.icon}</span>
-                <span className={styles.namemenu}>{item.name}</span>
-              </Link>
-            )}
-          </div>
-        ))}
+              </div>
+            );
+          })}
       </nav>
     </aside>
   );

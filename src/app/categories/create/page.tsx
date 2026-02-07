@@ -4,15 +4,26 @@ import CategoryForm from "@/components/categories/CategoryForm";
 import { useRouter } from "next/navigation";
 import styles from "@/styles/Category.module.css";
 import Swal from "sweetalert2";
-
+import { useEffect } from "react";
 export default function CreateCategoryPage() {
   const router = useRouter();
 
+  useEffect(() => {
+    const role = localStorage.getItem("role")?.toLowerCase();
+    if (role === "subcontractor") {
+      router.replace("/"); // Redirect to home/dashboard
+    }
+  }, [router]);
+
   const handleSave = async (data: { code: string; name: string; description: string }) => {
     try {
+      const token = localStorage.getItem("token");
       const res = await fetch("/api/categories", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify(data),
       });
 
@@ -48,7 +59,6 @@ export default function CreateCategoryPage() {
       });
     }
   };
-
   return (
     <div>
       <h1 className={styles.title}>Create Category</h1>
