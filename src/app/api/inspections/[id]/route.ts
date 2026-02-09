@@ -83,6 +83,15 @@ export async function PATCH(
         { status: 404 },
       );
 
+    // --- 2️⃣ Update status (always Submitted) ---
+    // --- Update status dynamically ---
+    const status = body.get("status") as string | undefined;
+    if (status && (status === "Draft" || status === "Submitted")) {
+      inspection.status = status;
+    } else {
+      inspection.status = "Submitted"; // default
+    }
+    // --- 3️⃣ Update answers ---
     answers.forEach((a) => {
       const existing = inspection.answers.find(
         (ans) => ans.questionId.toString() === a.questionId,
@@ -94,7 +103,7 @@ export async function PATCH(
       }
     });
 
-    // --- 2️⃣ Parse newActions safely ---
+    // --- 4️⃣ Parse newActions safely ---
     const newActionsRaw = body.get("newActions") as string | null;
     const newActions = newActionsRaw ? JSON.parse(newActionsRaw) : [];
     const savedActions: any[] = [];
@@ -117,7 +126,7 @@ export async function PATCH(
 
       const action = await Action.create({
         title: a.title,
-        assignee: new mongoose.Types.ObjectId(a.assignee), 
+        assignee: new mongoose.Types.ObjectId(a.assignee),
         dueDate: a.dueDate,
         status: a.status || "Open",
         evidence: files,
@@ -133,10 +142,15 @@ export async function PATCH(
       if (answer) answer.actionId = action._id;
     }
 
+    // --- 5️⃣ Save inspection ---
     await inspection.save();
 
     return NextResponse.json(
-      { message: "Inspection and actions saved", inspection, savedActions },
+      {
+        message: "Inspection submitted successfully",
+        inspection,
+        savedActions,
+      },
       { status: 200 },
     );
   } catch (err: any) {

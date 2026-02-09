@@ -126,10 +126,9 @@
 
 .header {
   background: #f1f5f9;
-  font-weight: 600;
+  font-weight: 500;
   font-size: 14px;
-  text-transform: uppercase;
-  color: #374151;
+  color: #111;
 }
 
 .row {
