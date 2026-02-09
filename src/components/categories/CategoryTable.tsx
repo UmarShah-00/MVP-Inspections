@@ -3,7 +3,7 @@
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Link from "next/link";
 import Swal from "sweetalert2";
-import styles from "@/styles/category.module.css";
+import styles from "@/styles/Category.module.css";
 
 interface ICategory {
   _id: string;
