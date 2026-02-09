@@ -4,6 +4,7 @@ import Inspection from "@/models/Inspection";
 import User from "@/models/User";
 import { verifyToken, type DecodedToken } from "@/lib/jwt";
 import Category from "@/models/Category";
+
 /** Helper: Get user from Authorization header */
 function getUserFromRequest(req: NextRequest): DecodedToken | null {
   const authHeader = req.headers.get("authorization");
@@ -19,7 +20,6 @@ function getUserFromRequest(req: NextRequest): DecodedToken | null {
 }
 
 /** CREATE INSPECTION */
-
 export async function POST(req: NextRequest) {
   const user = getUserFromRequest(req);
   if (!user)
@@ -88,6 +88,13 @@ export async function GET(req: NextRequest) {
       .lean()
       .sort({ createdAt: -1 });
 
+    // --- Define Answer type for TypeScript ---
+    type Answer = {
+      questionId: string | mongoose.Types.ObjectId;
+      answer: string;
+      actionId?: mongoose.Types.ObjectId;
+    };
+
     const populated = await Promise.all(
       inspections.map(async (insp) => {
         // 🔹 Populate CreatedBy safely
@@ -108,14 +115,18 @@ export async function GET(req: NextRequest) {
           if (user) assignedJS = user;
         }
 
-         let category = { name: "N/A" };
+        // 🔹 Populate Category safely
+        let category = { name: "N/A" };
         if (insp.categoryId) {
-          const cat = await Category.findById(insp.categoryId).select("name").lean();
+          const cat = await Category.findById(insp.categoryId)
+            .select("name")
+            .lean();
           if (cat) category = cat;
         }
-        // 🔹 Findings count
+
+        // 🔹 Findings count (Type-safe)
         const findingsCount = (insp.answers || []).filter(
-          (ans) => ans.answer === "No" && !ans.actionId,
+          (ans: Answer) => ans.answer === "No" && !ans.actionId,
         ).length;
 
         return {
