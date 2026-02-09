@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 
 const months = [
@@ -47,45 +46,54 @@ export const useDashboard = () => {
             fetchJSON("/api/dashboard/recent-inspections"),
           ]);
 
-        setStats(statsRes);
-        setRecentInspections(recentRes || []);
+        // === Stats Cards ===
+        setStats({
+          totalInspections: statsRes.totalInspections || 0,
+          openActions: statsRes.openActions || 0,
+          closedActions: statsRes.closedActions || 0,
+        });
 
-        // Actions Status (BarChart)
-        const statusMap: Record<string, string> = {
-          Draft: "Open",
-          "In Progress": "In Progress",
-          Submitted: "Closed",
-          Closed: "Closed",
-        };
-        const statusCounts = ["Open", "In Progress", "Closed"].map(
-          (status) => ({
-            name: status,
-            actions: (actionsRes.actions || []).filter((a: any) => {
-              const s = (a.status || "").trim(); // remove spaces
-              const mapped = statusMap[s] || s; // fallback to itself
-              return mapped === status;
-            }).length,
-          }),
-        );
+        // === Actions Bar Chart ===
+        const openCount = (actionsRes.actions || []).filter(
+          (a) => a.status === "Open",
+        ).length;
+        const inProgressCount = (actionsRes.actions || []).filter(
+          (a) => a.status === "In Progress",
+        ).length;
+        const closedCount = (actionsRes.actions || []).filter(
+          (a) => a.status === "Closed",
+        ).length;
 
-        setActionsStatus(statusCounts);
+        setActionsStatus([
+          { name: "Open", actions: openCount },
+          { name: "In Progress", actions: inProgressCount },
+          { name: "Closed", actions: closedCount },
+        ]);
 
-        // Actions Trend (LineChart)
+        // === Actions Trend Chart ===
         const grouped: Record<string, any> = {};
         (trendRes || []).forEach((d: any) => {
           const month = months[d._id.month - 1] || "Unknown";
           if (!grouped[month])
             grouped[month] = { month, Open: 0, "In Progress": 0, Closed: 0 };
-          const chartStatus = statusMap[d._id.status];
-          if (chartStatus) grouped[month][chartStatus] += d.count;
+
+          let status = (d._id.status || "").trim();
+          if (status === "Draft") status = "Open";
+          else if (status === "Submitted") status = "Closed";
+
+          if (["Open", "In Progress", "Closed"].includes(status))
+            grouped[month][status] += d.count;
         });
         setTrend(Object.values(grouped));
 
-        // Inspections by Category (PieChart)
+        // === Inspections PieChart ===
         const mappedCategory = (categoryRes || [])
           .map((c: any) => ({ name: c.name || "N/A", value: c.value || 0 }))
           .filter((c) => c.value > 0);
         setCategory(mappedCategory);
+
+        // === Recent Inspections ===
+        setRecentInspections(recentRes || []);
 
         setLoading(false);
       } catch (err) {

@@ -1,5 +1,4 @@
 "use client";
-
 import styles from "@/styles/Dashboard.module.css";
 import { FiClipboard, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { useEffect, useState } from "react";
@@ -22,21 +21,19 @@ export default function StatsCard({ title, value, icon, variant }: Props) {
   const Icon = icons[icon];
 
   useEffect(() => {
+    if (value === 0) { setCount(0); return; }
     let start = 0;
-    const end = value;
-    if (end === 0) return;
-
     const duration = 1200;
-    const increment = end / (duration / 20);
+    const steps = duration / 20;
+    const increment = value / steps;
 
     const counter = setInterval(() => {
       start += increment;
-      if (start >= end) {
-        start = end;
-        clearInterval(counter);
-      }
-      setCount(Math.floor(start));
+      if (start >= value) { setCount(value); clearInterval(counter); }
+      else setCount(Math.floor(start));
     }, 20);
+
+    return () => clearInterval(counter);
   }, [value]);
 
   return (

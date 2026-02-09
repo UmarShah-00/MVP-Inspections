@@ -93,39 +93,57 @@ export default function Sidebar() {
     router.push("/login");
   };
 
+  const handleItemClick = (item: MenuItem) => {
+    if (item.key === "logout") return handleLogout();
+    if (item.subMenu && item.subMenu.length > 0) return handleClick(item.key);
+    if (item.link) router.push(item.link); // Navigate if link exists
+  };
+
   return (
     <aside className={styles.sidebar}>
       <h2 className={styles.logo}>MVP Inspection</h2>
 
       <nav className={styles.menu}>
         {menuItems
-          .filter((item) => item.role === "all" || (item.role === "main" && userRole === "main contractor") || (item.role === "sub" && userRole === "subcontractor"))
+          .filter(
+            (item) =>
+              item.role === "all" ||
+              (item.role === "main" && userRole === "main contractor") ||
+              (item.role === "sub" && userRole === "subcontractor")
+          )
           .map((item) => {
             const hasSubMenu = item.subMenu && item.subMenu.length > 0;
-
-            // Determine click action
-            let onClick: (() => void) | undefined;
-            if (item.key === "logout") onClick = handleLogout;
-            else if (hasSubMenu) onClick = () => handleClick(item.key);
 
             return (
               <div key={item.key}>
                 <button
-                  className={`${styles.menuItem} ${openMenu === item.key ? styles.active : ""}`}
-                  onClick={onClick}
+                  className={`${styles.menuItem} ${
+                    openMenu === item.key ? styles.active : ""
+                  }`}
+                  onClick={() => handleItemClick(item)}
                   type="button"
                 >
                   <div className={styles.menuLeft}>
                     <span className={styles.icon}>{item.icon}</span>
                     <span>{item.name}</span>
                   </div>
-                  {hasSubMenu && <FiChevronDown className={`${styles.chevron} ${openMenu === item.key ? styles.rotate : ""}`} />}
+                  {hasSubMenu && (
+                    <FiChevronDown
+                      className={`${styles.chevron} ${
+                        openMenu === item.key ? styles.rotate : ""
+                      }`}
+                    />
+                  )}
                 </button>
 
                 {hasSubMenu && openMenu === item.key && (
                   <div className={styles.subMenu}>
                     {item.subMenu!.map((sub) => (
-                      <Link key={sub.link} href={sub.link} className={pathname === sub.link ? styles.active : ""}>
+                      <Link
+                        key={sub.link}
+                        href={sub.link}
+                        className={pathname === sub.link ? styles.active : ""}
+                      >
                         {sub.name}
                       </Link>
                     ))}

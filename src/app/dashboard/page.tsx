@@ -22,10 +22,10 @@ export default function DashboardPage() {
     if (!token) router.push("/login");
   }, [router]);
 
-  if (loading) return <p style={{ padding: 40 }}>Loading dashboard...</p>;
+  if (loading) return <p>Loading...</p>;
 
   return (
-    <div style={{ padding: 20 }}>
+    <div >
       {/* Header */}
       <div style={{ marginBottom: 32 }}>
         <h1 className={styles.title}>Dashboard</h1>

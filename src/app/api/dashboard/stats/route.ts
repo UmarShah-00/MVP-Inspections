@@ -1,16 +1,35 @@
+// /app/api/dashboard/stats/route.ts
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Inspection from "@/models/Inspection";
+import Action from "@/models/Action";
 import { getUserFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request) {
   await connectDB();
+
   const user: any = getUserFromRequest(req as any);
-  const filter = user.role === "Subcontractor" ? { subcontractorId: user.id } : {};
 
-  const totalInspections = await Inspection.countDocuments(filter);
-  const openActions = await Inspection.countDocuments({ ...filter, status: "Draft" });
-  const closedActions = await Inspection.countDocuments({ ...filter, status: "Submitted" });
+  // Filter inspections and actions for subcontractor
+  const inspectionFilter =
+    user.role === "Subcontractor" ? { subcontractorId: user.id } : {};
 
-  return NextResponse.json({ totalInspections, openActions, closedActions });
+  const actionFilter =
+    user.role === "Subcontractor" ? { assignee: user.id } : {};
+
+  const totalInspections = await Inspection.countDocuments(inspectionFilter);
+  const openActions = await Action.countDocuments({
+    ...actionFilter,
+    status: { $in: ["Open", "In Progress"] },
+  });
+  const closedActions = await Action.countDocuments({
+    ...actionFilter,
+    status: "Closed",
+  });
+
+  return NextResponse.json({
+    totalInspections,
+    openActions,
+    closedActions,
+  });
 }

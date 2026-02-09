@@ -1,7 +1,7 @@
 "use client";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-const COLORS: Record<string, string> = { Open:"#fa541c","In Progress":"#f59e0b",Closed:"#52c41a" };
+const COLORS: Record<string,string> = { Open:"#fa541c","In Progress":"#f59e0b",Closed:"#52c41a" };
 
 export default function ActionsChart({ data }: { data: { name:string, actions:number }[] }) {
   return (
@@ -13,7 +13,7 @@ export default function ActionsChart({ data }: { data: { name:string, actions:nu
           <YAxis />
           <Tooltip />
           <Bar dataKey="actions">
-            {data.map((entry,i) => <Cell key={i} fill={COLORS[entry.name] || "#1677ff"} />)}
+            {data.map((entry,i)=><Cell key={i} fill={COLORS[entry.name] || "#1677ff"} />)}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
