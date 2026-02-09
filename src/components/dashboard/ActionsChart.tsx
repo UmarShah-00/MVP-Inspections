@@ -1,29 +1,22 @@
 "use client";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
-import {
-  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer
-} from "recharts";
+const COLORS: Record<string, string> = { Open:"#fa541c","In Progress":"#f59e0b",Closed:"#52c41a" };
 
-const data = [
-  { name: "Open", actions: 8 },
-  { name: "In Progress", actions: 5 },
-  { name: "Closed", actions: 16 },
-];
-
-export default function ActionsChart() {
+export default function ActionsChart({ data }: { data: { name:string, actions:number }[] }) {
   return (
-    <>
-      <h3>Actions Status Overview</h3>
-      <div style={{ width: "100%", height: 260, marginTop: 16 }}>
-        <ResponsiveContainer>
-          <BarChart data={data}>
-            <XAxis dataKey="name" />
-            <YAxis />
-            <Tooltip />
-            <Bar dataKey="actions" fill="#000" />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
-    </>
+    <div className="chartCard">
+      <h3 className="chartCardTitle">Actions Status</h3>
+      <ResponsiveContainer width="100%" height={250}>
+        <BarChart data={data}>
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="actions">
+            {data.map((entry,i) => <Cell key={i} fill={COLORS[entry.name] || "#1677ff"} />)}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

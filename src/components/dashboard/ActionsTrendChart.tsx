@@ -1,29 +1,25 @@
 "use client";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
-import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+const STATUS_COLORS: Record<string,string> = { Open:"#fa541c","In Progress":"#f59e0b",Closed:"#52c41a" };
 
-const data = [
-  { month: "Jan", open: 4, closed: 10 },
-  { month: "Feb", open: 6, closed: 12 },
-  { month: "Mar", open: 8, closed: 16 },
-  { month: "Apr", open: 5, closed: 14 },
-];
+export default function ActionsTrendChart({ data }: { data: any[] }) {
+  if (!data || data.length === 0) return <p>No trend data available</p>;
 
-export default function ActionsTrendChart() {
   return (
-    <>
-      <h3>Actions Trend</h3>
-      <div style={{ width: "100%", height: 260, marginTop: 16 }}>
-        <ResponsiveContainer>
-          <LineChart data={data}>
-            <XAxis dataKey="month" />
-            <YAxis />
-            <Tooltip />
-            <Line type="monotone" dataKey="open" stroke="#FF4D4F" />
-            <Line type="monotone" dataKey="closed" stroke="#52C41A" />
-          </LineChart>
-        </ResponsiveContainer>
-      </div>
-    </>
+    <div className="chartCard">
+      <h3 className="chartCardTitle">Actions Trend</h3>
+      <ResponsiveContainer width="100%" height={250}>
+        <LineChart data={data}>
+          <XAxis dataKey="month" />
+          <YAxis />
+          <Tooltip />
+          <Legend verticalAlign="top" height={36} />
+          {["Open","In Progress","Closed"].map(status => (
+            <Line key={status} type="monotone" dataKey={status} stroke={STATUS_COLORS[status]} strokeWidth={2} activeDot={{ r:5 }} />
+          ))}
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

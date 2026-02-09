@@ -2,51 +2,54 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { useDashboard } from "@/hooks/useDashboard";
 
 import StatsCard from "@/components/dashboard/StatsCard";
 import ActionsChart from "@/components/dashboard/ActionsChart";
 import InspectionsChart from "@/components/dashboard/InspectionsChart";
 import ActionsTrendChart from "@/components/dashboard/ActionsTrendChart";
-import styles from "@/components/dashboard/Dashboard.module.css";
+import RecentInspectionsTable from "@/components/dashboard/RecentInspectionsTable";
 
-export default function Dashboard() {
+import styles from "@/styles/Dashboard.module.css";
+
+export default function DashboardPage() {
   const router = useRouter();
+  const { stats, actionsStatus, trend, category, recentInspections, loading } = useDashboard();
 
-  // Client-side token check
+  // Auth check
   useEffect(() => {
     const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login"); // redirect to login if not authenticated
-    }
+    if (!token) router.push("/login");
   }, [router]);
 
+  if (loading) return <p style={{ padding: 40 }}>Loading dashboard...</p>;
+
   return (
-    <div>
+    <div style={{ padding: 20 }}>
       {/* Header */}
-      <div className={styles.header}>
+      <div style={{ marginBottom: 32 }}>
         <h1 className={styles.title}>Dashboard</h1>
+        <p className={styles.subTitle}>Overview of inspections, actions, and trends</p>
       </div>
 
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
-        <StatsCard title="Total Inspections" value="24" />
-        <StatsCard title="Open Actions" value="8" warning />
-        <StatsCard title="Closed Actions" value="16" success />
+        <StatsCard title="Total Inspections" value={stats?.totalInspections || 0} icon="clipboard" />
+        <StatsCard title="Open Actions" value={stats?.openActions || 0} icon="alert-circle" variant="warning" />
+        <StatsCard title="Closed Actions" value={stats?.closedActions || 0} icon="check-circle" variant="success" />
       </div>
 
-      {/* Charts Section */}
+      {/* Charts */}
       <div className={styles.chartsGrid}>
-        <div className={styles.chartCard}>
-          <ActionsChart />
-        </div>
+        <div className={styles.chartCard}><ActionsChart data={actionsStatus} /></div>
+        <div className={styles.chartCard}><InspectionsChart data={category} /></div>
+        <div className={styles.chartCard}><ActionsTrendChart data={trend} /></div>
+      </div>
 
-        <div className={styles.chartCard}>
-          <InspectionsChart />
-        </div>
-
-        <div className={styles.chartCard}>
-          <ActionsTrendChart />
-        </div>
+      {/* Recent Inspections */}
+      <div style={{ marginTop: 40 }}>
+        <h2 className={styles.title}>Recent Inspections</h2>
+        <RecentInspectionsTable data={recentInspections} />
       </div>
     </div>
   );
