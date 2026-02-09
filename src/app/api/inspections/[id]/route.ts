@@ -91,10 +91,18 @@ export async function PATCH(
     } else {
       inspection.status = "Submitted"; // default
     }
+
     // --- 3️⃣ Update answers ---
+    // Define Answer type for TypeScript
+    type Answer = {
+      questionId: string | mongoose.Types.ObjectId;
+      answer: string;
+      actionId?: mongoose.Types.ObjectId;
+    };
+
     answers.forEach((a) => {
       const existing = inspection.answers.find(
-        (ans) => ans.questionId.toString() === a.questionId,
+        (ans: Answer) => ans.questionId.toString() === a.questionId,
       );
       if (existing) {
         existing.answer = a.answer;
@@ -137,7 +145,7 @@ export async function PATCH(
       savedActions.push(action);
 
       const answer = inspection.answers.find(
-        (ans) => ans.questionId.toString() === a.questionId.toString(),
+        (ans: Answer) => ans.questionId.toString() === a.questionId.toString(),
       );
       if (answer) answer.actionId = action._id;
     }
@@ -161,3 +169,4 @@ export async function PATCH(
     );
   }
 }
+
