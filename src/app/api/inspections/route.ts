@@ -4,6 +4,7 @@ import Inspection from "@/models/Inspection";
 import User from "@/models/User";
 import { verifyToken, type DecodedToken } from "@/lib/jwt";
 import Category from "@/models/Category";
+import mongoose from "mongoose";
 
 /** Helper: Get user from Authorization header */
 function getUserFromRequest(req: NextRequest): DecodedToken | null {
