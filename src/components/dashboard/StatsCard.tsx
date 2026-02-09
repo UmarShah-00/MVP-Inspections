@@ -1,5 +1,5 @@
 "use client";
-import styles from "@/styles/Dashboard.module.css";
+import styles from "@/styles/dashboard.module.css";
 import { FiClipboard, FiCheckCircle, FiAlertCircle } from "react-icons/fi";
 import { useEffect, useState } from "react";
 

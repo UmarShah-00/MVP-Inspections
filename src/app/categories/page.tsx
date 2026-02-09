@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import CategoryTable from "@/components/categories/CategoryTable";
 import Link from "next/link";
-import styles from "@/styles/Category.module.css";
+import styles from "@/styles/category.module.css";
 import { useRouter } from "next/navigation";
 interface ICategory {
   _id: string;

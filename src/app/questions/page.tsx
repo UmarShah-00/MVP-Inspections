@@ -5,7 +5,7 @@ import Link from "next/link";
 import Swal from "sweetalert2";
 import QuestionList from "@/components/questions/QuestionList";
 import { useRouter } from "next/navigation";
-import styles from "@/styles/Question.module.css";
+import styles from "@/styles/question.module.css";
 
 interface Question {
   id: string;

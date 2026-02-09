@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
-import styles from "@/styles/Category.module.css";
+import styles from "@/styles/category.module.css";
 
 export default function EditCategoryPage() {
     const router = useRouter();

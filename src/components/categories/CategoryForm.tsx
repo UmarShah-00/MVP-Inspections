@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import styles from "@/styles/Category.module.css";
+import styles from "@/styles/category.module.css";
 import Swal from "sweetalert2";
 
 interface Props {

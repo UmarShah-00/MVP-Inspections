@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Swal from "sweetalert2";
-import styles from "@/styles/Question.module.css";
+import styles from "@/styles/question.module.css";
 
 interface Category {
     id: string;

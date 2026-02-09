@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Swal from "sweetalert2";
-import styles from "@/styles/Question.module.css";
+import styles from "@/styles/question.module.css";
 
 interface Props {
   categories: { id: string; name: string }[];

@@ -10,7 +10,7 @@ import InspectionsChart from "@/components/dashboard/InspectionsChart";
 import ActionsTrendChart from "@/components/dashboard/ActionsTrendChart";
 import RecentInspectionsTable from "@/components/dashboard/RecentInspectionsTable";
 
-import styles from "@/styles/Dashboard.module.css";
+import styles from "@/styles/dashboard.module.css";
 
 export default function DashboardPage() {
   const router = useRouter();

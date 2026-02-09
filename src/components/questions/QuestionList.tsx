@@ -3,7 +3,7 @@
 import { FaEdit, FaTrash } from "react-icons/fa";
 import Link from "next/link";
 import Swal from "sweetalert2";
-import styles from "@/styles/Question.module.css";
+import styles from "@/styles/question.module.css";
 
 interface Question {
   id: string;

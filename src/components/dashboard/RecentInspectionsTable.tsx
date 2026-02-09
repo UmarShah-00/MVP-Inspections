@@ -1,4 +1,4 @@
-import styles from "@/styles/Dashboard.module.css";
+import styles from "@/styles/dashboard.module.css";
 
 interface Props {
     data: {

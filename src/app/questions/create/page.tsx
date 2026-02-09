@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import QuestionForm from "@/components/questions/QuestionForm";
 import { useRouter } from "next/navigation";
-import styles from "@/styles/Question.module.css";
+import styles from "@/styles/question.module.css";
 
 export default function QuestionsFormPage() {
   const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);

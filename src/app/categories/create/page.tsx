@@ -2,7 +2,7 @@
 
 import CategoryForm from "@/components/categories/CategoryForm";
 import { useRouter } from "next/navigation";
-import styles from "@/styles/Category.module.css";
+import styles from "@/styles/category.module.css";
 import Swal from "sweetalert2";
 import { useEffect } from "react";
 export default function CreateCategoryPage() {
