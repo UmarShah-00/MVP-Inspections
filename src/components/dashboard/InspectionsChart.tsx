@@ -3,7 +3,14 @@
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 
 const COLORS = [
-  "#1677ff", "#52c41a", "#faad14", "#fa541c", "#13c2c2", "#722ed1", "#eb2f96", "#fa8c16",
+  "#1677ff",
+  "#52c41a",
+  "#faad14",
+  "#fa541c",
+  "#13c2c2",
+  "#722ed1",
+  "#eb2f96",
+  "#fa8c16",
 ];
 
 interface CategoryData {
@@ -30,7 +37,7 @@ export default function InspectionsChart({ data }: { data: CategoryData[] }) {
               outerRadius={100}
               innerRadius={60} // Donut
               paddingAngle={4}
-              label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`} // ✅ Fixed
               labelLine={true}
               animationDuration={800}
             >
