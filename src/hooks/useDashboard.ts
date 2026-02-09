@@ -75,7 +75,12 @@ export const useDashboard = () => {
         setTrend(Object.values(grouped));
 
         // === Inspections PieChart ===
-        const mappedCategory = (categoryRes || []).map((c: any) => ({ name: c.name || "N/A", value: c.value || 0 })).filter((c) => c.value > 0);
+        type CategoryResItem = { name?: string; value?: number };
+
+        const mappedCategory = (categoryRes as CategoryResItem[] || [])
+          .map((c) => ({ name: c.name || "N/A", value: c.value || 0 }))
+          .filter((c) => c.value > 0);
+
         setCategory(mappedCategory);
 
         // === Recent Inspections ===
