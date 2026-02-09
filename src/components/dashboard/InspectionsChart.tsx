@@ -35,9 +35,11 @@ export default function InspectionsChart({ data }: { data: CategoryData[] }) {
               dataKey="value"
               nameKey="name"
               outerRadius={100}
-              innerRadius={60} // Donut
+              innerRadius={60}
               paddingAngle={4}
-              label={({ name, percent }) => `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`} // ✅ Fixed
+              label={({ name, percent }) =>
+                `${name}: ${((percent ?? 0) * 100).toFixed(0)}%`
+              }
               labelLine={true}
               animationDuration={800}
             >
@@ -53,7 +55,7 @@ export default function InspectionsChart({ data }: { data: CategoryData[] }) {
             </Pie>
 
             <Tooltip
-              formatter={(value: number, name: string) => [`${value}`, name]}
+              formatter={(value?: number, name?: string) => [`${value ?? 0}`, name ?? ""]}
               contentStyle={{
                 backgroundColor: "#fff",
                 borderRadius: 8,

@@ -20,6 +20,13 @@ function getUserFromRequest(req: NextRequest): DecodedToken | null {
   }
 }
 
+/** Define Answer type once for TypeScript */
+type Answer = {
+  questionId: string | mongoose.Types.ObjectId;
+  answer: string;
+  actionId?: mongoose.Types.ObjectId;
+};
+
 /** CREATE INSPECTION */
 export async function POST(req: NextRequest) {
   const user = getUserFromRequest(req);
@@ -33,8 +40,8 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
 
-    const user = getUserFromRequest(req);
-    if (!user)
+    const userCheck = getUserFromRequest(req);
+    if (!userCheck)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { title, date, categoryId, subcontractorId, description } =
@@ -43,7 +50,7 @@ export async function POST(req: NextRequest) {
     if (!title || !date || !categoryId || !subcontractorId) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 },
+        { status: 400 }
       );
     }
 
@@ -52,7 +59,7 @@ export async function POST(req: NextRequest) {
       date,
       categoryId,
       subcontractorId,
-      createdBy: user.id,
+      createdBy: userCheck.id,
       status: "Draft",
       description: description || "",
       answers: [],
@@ -63,89 +70,64 @@ export async function POST(req: NextRequest) {
     console.error("Create Inspection Error:", error.message, error.stack);
     return NextResponse.json(
       { error: "Failed to create inspection" },
-      { status: 500 },
+      { status: 500 }
     );
   }
 }
 
-/** GET INSPECTIONS (safe populate with fallback) */
+/** GET INSPECTIONS */
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
 
-    // 🔐 Get logged-in user
     const user = getUserFromRequest(req);
-    if (!user) {
+    if (!user)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
 
-    // 🔎 Role-based filter
     const filter: any = {};
     if (user.role?.toLowerCase() === "subcontractor") {
       filter.subcontractorId = user.id;
     }
 
-    const inspections = await Inspection.find(filter)
-      .lean()
-      .sort({ createdAt: -1 });
-
-    // --- Define Answer type for TypeScript ---
-    type Answer = {
-      questionId: string | mongoose.Types.ObjectId;
-      answer: string;
-      actionId?: mongoose.Types.ObjectId;
-    };
+    const inspections = await Inspection.find(filter).lean().sort({ createdAt: -1 });
 
     const populated = await Promise.all(
       inspections.map(async (insp) => {
-        // 🔹 Populate CreatedBy safely
         let createdBy = { name: "Unknown", role: "N/A" };
         if (insp.createdBy) {
-          const user = await User.findById(insp.createdBy)
-            .select("name role")
-            .lean();
-          if (user) createdBy = user;
+          const dbUser = await User.findById(insp.createdBy).select("name role").lean();
+          if (dbUser) createdBy = dbUser;
         }
 
-        // 🔹 Populate Assigned JS / subcontractor safely
         let assignedJS = { name: "Unassigned", role: "N/A" };
         if (insp.subcontractorId) {
-          const user = await User.findById(insp.subcontractorId)
-            .select("name role")
-            .lean();
-          if (user) assignedJS = user;
+          const dbUser = await User.findById(insp.subcontractorId).select("name role").lean();
+          if (dbUser) assignedJS = dbUser;
         }
 
-        // 🔹 Populate Category safely
         let category = { name: "N/A" };
         if (insp.categoryId) {
-          const cat = await Category.findById(insp.categoryId)
-            .select("name")
-            .lean();
+          const cat = await Category.findById(insp.categoryId).select("name").lean();
           if (cat) category = cat;
         }
 
-        // 🔹 Findings count (Type-safe)
-        const findingsCount = (insp.answers || []).filter(
-          (ans: Answer) => ans.answer === "No" && !ans.actionId,
+        const findingsCount = (insp.answers as Answer[] || []).filter(
+          (ans) => ans.answer === "No" && !ans.actionId
         ).length;
 
         return {
           ...insp,
-          createdBy: createdBy || { name: "Unknown", role: "N/A" },
-          assignedJS: assignedJS || { name: "Unassigned", role: "N/A" },
+          createdBy,
+          assignedJS,
           category,
           findings: findingsCount,
         };
-      }),
+      })
     );
 
     return NextResponse.json(populated, { status: 200 });
   } catch (err: any) {
     console.error("Fetch Inspections Error:", err.message, err.stack);
-    return NextResponse.json(
-      { error: "Failed to fetch inspections" },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: "Failed to fetch inspections" }, { status: 500 });
   }
 }
