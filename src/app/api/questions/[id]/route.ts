@@ -7,7 +7,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    await connectMongo();
+    await connectDB();
     const question = await Question.findById(params.id)
       .populate("categoryId", "name")
       .lean();
