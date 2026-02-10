@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (user.role?.toLowerCase() === "subcontractor") {
+  if (user.role?.toLowerCase() === "Subcontractor") {
     return NextResponse.json({ error: "Permission denied" }, { status: 403 });
   }
 
