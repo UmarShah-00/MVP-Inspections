@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const filter: any = {};
-    if (user.role?.toLowerCase() === "subcontractor") {
+    if (user.role?.toLowerCase() === "Subcontractor") {
       filter.subcontractorId = user.id;
     }
 
