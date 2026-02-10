@@ -5,38 +5,72 @@ import bcrypt from "bcryptjs";
 import { signToken } from "@/lib/jwt";
 
 export async function POST(req: NextRequest) {
-  await connectDB();
+  try {
+    // 1️⃣ Connect DB
+    await connectDB();
 
-  const { email, password } = await req.json();
+    // 2️⃣ Parse request safely
+    let body: { email?: string; password?: string } = { email: "", password: "" };
+    try {
+      body = await req.json();
+    } catch (err) {
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
+    }
 
-  if (!email || !password) {
-    return NextResponse.json(
-      { error: "Email and password required" },
-      { status: 400 },
-    );
-  }
+    const { email, password } = body;
 
-  const user = await User.findOne({ email });
-  if (!user)
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    if (!email || !password) {
+      return NextResponse.json(
+        { error: "Email and password required" },
+        { status: 400 }
+      );
+    }
 
-  const isPasswordValid = await bcrypt.compare(password, user.password);
-  if (!isPasswordValid)
-    return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
+    // 3️⃣ Find user
+    const user = await User.findOne({ email }).lean();
+    if (!user) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
 
-  const token = signToken({
-    id: user._id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
-  });
+    // 4️⃣ Compare password safely
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        { error: "Invalid credentials" },
+        { status: 401 }
+      );
+    }
 
-  return NextResponse.json({
-    token,
-    user: {
+    // 5️⃣ Sign JWT
+    const token = signToken({
+      id: user._id,
       name: user.name,
       email: user.email,
-      role: user.role, 
-    },
-  });
+      role: user.role,
+    });
+
+    // 6️⃣ Return response
+    return NextResponse.json({
+      success: true,
+      token,
+      user: {
+        name: user.name,
+        email: user.email,
+        role: user.role,
+      },
+    });
+  } catch (error: any) {
+    console.error("Login API Error:", error);
+
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 }
+    );
+  }
 }
