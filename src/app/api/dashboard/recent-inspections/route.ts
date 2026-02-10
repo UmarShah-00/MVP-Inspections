@@ -7,12 +7,24 @@ import { getUserFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request) {
   try {
+    // 1️⃣ DB connect (safe)
     await connectDB();
 
-    const user: any = getUserFromRequest(req as any);
-    const filter = user.role === "Subcontractor" ? { subcontractorId: user.id } : {};
+    // 2️⃣ User extract (build-safe)
+    let user: any = null;
+    try {
+      user = getUserFromRequest(req as any);
+    } catch (err) {
+      user = null;
+    }
 
-    // Populate category and subcontractor
+    // 3️⃣ Filter safely
+    const filter =
+      user && user.role === "Subcontractor"
+        ? { subcontractorId: user.id }
+        : {};
+
+    // 4️⃣ Fetch recent inspections
     const data = await Inspection.find(filter)
       .sort({ createdAt: -1 })
       .limit(10)
@@ -20,8 +32,8 @@ export async function GET(req: Request) {
       .populate({ path: "subcontractorId", model: User, select: "name" })
       .lean();
 
-    // Map to frontend-friendly format
-    const formatted = data.map(d => ({
+    // 5️⃣ Frontend-friendly format
+    const formatted = data.map((d: any) => ({
       _id: d._id,
       title: d.title,
       status: d.status,
@@ -31,9 +43,12 @@ export async function GET(req: Request) {
     }));
 
     return NextResponse.json(formatted);
+  } catch (error: any) {
+    console.error("Recent inspections API Error:", error);
 
-  } catch (err) {
-    console.error("Recent inspections error:", err);
-    return NextResponse.json({ error: "Failed to fetch recent inspections" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch recent inspections" },
+      { status: 500 }
+    );
   }
 }

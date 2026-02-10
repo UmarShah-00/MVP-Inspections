@@ -4,25 +4,46 @@ import Action from "@/models/Action";
 import { getUserFromRequest } from "@/lib/auth";
 
 export async function GET(req: Request) {
-  await connectDB();
+  try {
+    // 1️⃣ DB connect (safe)
+    await connectDB();
 
-  const user: any = getUserFromRequest(req as any);
-  const filter: any = {};
+    // 2️⃣ User extract (build-safe)
+    let user: any = null;
+    try {
+      user = getUserFromRequest(req as any);
+    } catch (err) {
+      user = null;
+    }
 
-  // Agar Subcontractor ho to sirf unke actions
-  if (user.role === "Subcontractor") filter.assignee = user.id;
+    // 3️⃣ Filter safely
+    const filter: any = {};
+    if (user && user.role === "Subcontractor") {
+      filter.assignee = user.id;
+    }
 
-  // Aggregate actions by month and status
-  const data = await Action.aggregate([
-    { $match: filter },
-    {
-      $group: {
-        _id: { month: { $month: "$createdAt" }, status: "$status" },
-        count: { $sum: 1 },
+    // 4️⃣ Aggregate actions by month + status
+    const data = await Action.aggregate([
+      { $match: filter },
+      {
+        $group: {
+          _id: {
+            month: { $month: "$createdAt" },
+            status: "$status",
+          },
+          count: { $sum: 1 },
+        },
       },
-    },
-    { $sort: { "_id.month": 1 } },
-  ]);
+      { $sort: { "_id.month": 1 } },
+    ]);
 
-  return NextResponse.json(data);
+    return NextResponse.json(data);
+  } catch (error: any) {
+    console.error("Actions Trend API Error:", error);
+
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
+  }
 }

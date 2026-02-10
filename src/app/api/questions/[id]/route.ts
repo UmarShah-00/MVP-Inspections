@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import connectMongo from "@/lib/db";
+import connectDB from "@/lib/db";
 import Question from "@/models/Question";
 
 export async function GET(
@@ -37,7 +37,7 @@ export async function PUT(
       );
     }
 
-    await connectMongo();
+     await connectDB();
     const updated = await Question.findByIdAndUpdate(
       params.id,
       { categoryId, text },
