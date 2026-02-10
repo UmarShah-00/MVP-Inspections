@@ -54,7 +54,7 @@ export async function PUT(
 }
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    await connectMongo();
+    await connectDB();
 
     const deleted = await Question.findByIdAndDelete(params.id);
 
