@@ -4,9 +4,15 @@ import connectDB from "@/lib/db";
 import Inspection from "@/models/Inspection";
 import Action from "@/models/Action";
 import Question from "@/models/Question";
-import fs from "fs";
-import path from "path";
+import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME!,
+  api_key: process.env.CLOUDINARY_API_KEY!,
+  api_secret: process.env.CLOUDINARY_API_SECRET!,
+});
+
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } },
@@ -30,12 +36,11 @@ export async function GET(
         { status: 200 },
       );
     }
-    // Fetch only questions for this inspection's category
+
     const questions = await Question.find({
       categoryId: inspection.categoryId,
     }).lean();
 
-    // Fetch actions for this inspection
     const actions = await Action.find({ inspectionId: inspection._id }).lean();
 
     return NextResponse.json(
@@ -83,16 +88,14 @@ export async function PATCH(
         { status: 404 },
       );
 
-    // --- 2️⃣ Update status (always Submitted) ---
     // --- Update status dynamically ---
     const status = body.get("status") as string | undefined;
     if (status && (status === "Draft" || status === "Submitted")) {
       inspection.status = status;
     } else {
-      inspection.status = "Submitted"; // default
+      inspection.status = "Submitted";
     }
 
-    // --- 3️⃣ Update answers ---
     // Define Answer type for TypeScript
     type Answer = {
       questionId: string | mongoose.Types.ObjectId;
@@ -116,22 +119,31 @@ export async function PATCH(
     const newActions = newActionsRaw ? JSON.parse(newActionsRaw) : [];
     const savedActions: any[] = [];
 
-    const uploadDir = path.join(process.cwd(), "public/uploads");
-    if (!fs.existsSync(uploadDir)) fs.mkdirSync(uploadDir, { recursive: true });
-
     for (const a of newActions) {
       const files: string[] = [];
 
+      // Upload all files for this action to Cloudinary
       for (const [key, value] of body.entries()) {
         if (key === a.questionId && value instanceof File) {
-          const fileName = `${Date.now()}-${value.name}`;
-          const filePath = path.join(uploadDir, fileName);
           const arrayBuffer = await value.arrayBuffer();
-          fs.writeFileSync(filePath, Buffer.from(arrayBuffer));
-          files.push(`/uploads/${fileName}`);
+          const buffer = Buffer.from(arrayBuffer);
+
+          const uploadResult: any = await new Promise((resolve, reject) => {
+            const stream = cloudinary.uploader.upload_stream(
+              { folder: "inspections" },
+              (error, result) => {
+                if (error) reject(error);
+                else resolve(result);
+              },
+            );
+            stream.end(buffer);
+          });
+
+          files.push(uploadResult.secure_url);
         }
       }
 
+      // Create Action once per newAction
       const action = await Action.create({
         title: a.title,
         assignee: new mongoose.Types.ObjectId(a.assignee),
@@ -169,4 +181,3 @@ export async function PATCH(
     );
   }
 }
-
