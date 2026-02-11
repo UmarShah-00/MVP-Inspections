@@ -6,10 +6,8 @@ import { signToken } from "@/lib/jwt";
 
 export async function POST(req: NextRequest) {
   try {
-    // 1️⃣ Connect DB
     await connectDB();
 
-    // 2️⃣ Parse request safely
     let body: { email?: string; password?: string } = { email: "", password: "" };
     try {
       body = await req.json();

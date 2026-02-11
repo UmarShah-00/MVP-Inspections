@@ -66,12 +66,7 @@ export default function InspectionsChart({ data }: { data: CategoryData[] }) {
               }}
             />
 
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              iconType="circle"
-              wrapperStyle={{ fontSize: 14, fontWeight: 500 }}
-            />
+          
           </PieChart>
         </ResponsiveContainer>
       )}
