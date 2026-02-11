@@ -79,7 +79,7 @@ export default function InspectionsPage() {
 
     try {
       const token = localStorage.getItem("token");
-      const res = await fetch(`/api/inspections/${id}`, {
+      const res = await fetch(`/api/inspections/edit/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
